@@ -79,7 +79,7 @@ class ChatItem extends StatelessWidget {
 
     // فحص unreadCount للتأكد من أنه عدد صحيح وأكبر من 0
     final unreadCount =
-        chat.unreadCount is int && chat.unreadCount > 0 ? chat.unreadCount : 0;
+        chat.unreadCount > 0 ? chat.unreadCount : 0;
     print('Unread count for chat ${chat.name} (${chat.id}): $unreadCount');
 
     return ListTile(
@@ -157,7 +157,7 @@ class ChatItem extends StatelessWidget {
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                lastMessage != null && lastMessage['fileName'] != null
+                lastMessage['fileName'] != null
                     ? lastMessage['fileName']
                     : 'Document', // نعرض اسم الملف لو موجود، ولو مش موجود نعرض "Document"
                 overflow: TextOverflow.ellipsis,

@@ -185,12 +185,16 @@ class HomeChatsView extends StatelessWidget {
                               return LongPressChatItem(
                                 chat: chat,
                                 onTap: () async {
-                                  // await viewModel.resetUnreadCount(chat.id);
+                                  // عند النقر على عنصر المحادثة، انتقل إلى ChatView مع تغليفها بـ Provider
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          ChatView(chat: chat),
+                                          ChangeNotifierProvider.value(
+                                        // استخدم نفس نموذج ViewModel الموجود حاليًا
+                                        value: viewModel,
+                                        child: ChatView(chat: chat),
+                                      ),
                                     ),
                                   );
                                 },

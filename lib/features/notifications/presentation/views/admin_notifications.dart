@@ -1,82 +1,63 @@
+import 'package:attendance_app/core/provider/app_provider.dart';
 import 'package:attendance_app/core/utils/app_colors.dart';
+import 'package:attendance_app/features/notifications/data/models/notification_model.dart';
+import 'package:attendance_app/features/notifications/data/services/notification_service.dart';
 import 'package:attendance_app/features/notifications/presentation/views/add_notifications_view.dart';
+import 'package:attendance_app/features/notifications/presentation/views/notifications_details_view.dart';
+import 'package:attendance_app/features/notifications/presentation/views/send_notification_view.dart';
 import 'package:attendance_app/features/notifications/presentation/views/update_notifications_view.dart';
-import 'package:attendance_app/features/notifications/presentation/views/widgets/notifications_list.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AdminNotifications extends StatefulWidget {
+  const AdminNotifications({super.key});
+
   @override
   _AdminNotificationsState createState() => _AdminNotificationsState();
 }
 
 class _AdminNotificationsState extends State<AdminNotifications> {
-  void _showDeleteDialog(int index) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.warning,
-      animType: AnimType.bottomSlide,
-      title: 'Delete Notification',
-      desc: 'Are you sure you want to delete this notification?',
-      btnCancelOnPress: () {},
-      btnOkOnPress: () {
-        setState(() {
-          notifications.removeAt(index);
-        });
-      },
-    ).show();
+  final NotificationService _notificationService = NotificationService();
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
   }
 
-  void _showBottomSheet(BuildContext context, int index) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+  Future<void> _loadNotifications() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // Just set loading to false, admins don't see notifications
+      setState(() {
+        isLoading = false;
+      });
+      
+      // Update app provider unread count (should be 0 for admins)
+      Provider.of<AppProvider>(context, listen: false).fetchUnreadNotificationsCount();
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error loading notifications: $e');
+    }
+  }
+
+  void _navigateToSendNotificationScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SendNotificationView(),
       ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          height: 150,
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.blue),
-                title: const Text("Update"),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final updatedNotification = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UpdateNotificationsView(
-                        notification: notifications[index],
-                        index: index,
-                      ),
-                    ),
-                  );
-                  if (updatedNotification != null) {
-                    setState(() {
-                      notifications[index] = {
-                        "subject": updatedNotification["subject"],
-                        "description": updatedNotification["description"],
-                        "date": updatedNotification["date"],
-                      };
-                    });
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text("Delete"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showDeleteDialog(index);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    ).then((value) {
+      // Reload notifications when returning from send notification screen
+      _loadNotifications();
+    });
   }
 
   @override
@@ -94,90 +75,90 @@ class _AdminNotificationsState extends State<AdminNotifications> {
         ),
         backgroundColor: AppColors.primaryColor,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.send, color: Colors.white),
+            onPressed: _navigateToSendNotificationScreen,
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: notifications.length,
-          itemBuilder: (context, index) {
-            return Card(
-              elevation: 7,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.notifications,
-                      color: AppColors.primaryColor,
-                      size: 30,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            notifications[index]["subject"]!,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            notifications[index]["description"]!,
-                            style: const TextStyle(
-                                fontSize: 16, color: Colors.black87),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          notifications[index]["date"]!,
-                          style:
-                              const TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert,
-                              color: Colors.black54),
-                          onPressed: () => _showBottomSheet(context, index),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final newNotification = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddNotificationsView(),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildAdminNotificationsBody(),
+    );
+  }
+
+  Widget _buildAdminNotificationsBody() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.notifications_off_outlined,
+            size: 70,
+            color: Colors.grey,
+          ),
+          const SizedBox(height: 16),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32.0),
+            child: Text(
+              'As an admin, you can only send notifications to students but not receive them.',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+              textAlign: TextAlign.center,
             ),
-          );
-          if (newNotification != null) {
-            setState(() {
-              notifications.add(newNotification);
-            });
-          }
-        },
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _navigateToSendNotificationScreen,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text('Send Notification'),
+          ),
+        ],
       ),
     );
+  }
+  
+  // Determine notification icon based on type
+  IconData _getNotificationIcon(String? type) {
+    switch (type) {
+      case 'assignment':
+        return Icons.assignment;
+      case 'test':
+        return Icons.quiz;
+      case 'attendance':
+        return Icons.how_to_reg;
+      case 'material':
+        return Icons.folder_open;
+      case 'questionnaire':
+        return Icons.fact_check;
+      case 'custom':
+        return Icons.message;
+      default:
+        return Icons.notifications;
+    }
+  }
+  
+  // Determine notification icon color based on type
+  Color _getNotificationIconColor(String? type) {
+    switch (type) {
+      case 'assignment':
+        return Colors.blue;
+      case 'test':
+        return Colors.orange;
+      case 'attendance':
+        return Colors.green;
+      case 'material':
+        return Colors.purple;
+      case 'questionnaire':
+        return Colors.teal;
+      case 'custom':
+        return Colors.indigo;
+      default:
+        return AppColors.primaryColor;
+    }
   }
 }

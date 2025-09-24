@@ -8,10 +8,10 @@ class MaterialsStudentScreen extends StatelessWidget {
   final int lectureNumber;
 
   const MaterialsStudentScreen({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.lectureNumber,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

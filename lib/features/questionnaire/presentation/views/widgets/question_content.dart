@@ -8,11 +8,11 @@ class QuestionContent extends StatefulWidget {
   final String? selectedAnswer;
 
   const QuestionContent({
-    Key? key,
+    super.key,
     required this.question,
     this.onAnswerSelected,
     this.selectedAnswer,
-  }) : super(key: key);
+  });
 
   @override
   State<QuestionContent> createState() => _QuestionContentState();

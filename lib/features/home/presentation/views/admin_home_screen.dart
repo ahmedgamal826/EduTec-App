@@ -1,6 +1,8 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:attendance_app/core/widgets/subject_screen.dart';
+import 'package:attendance_app/core/provider/app_provider.dart';
+import 'package:attendance_app/core/views/subject_screen.dart';
 import 'package:attendance_app/features/attendance/presentation/views/update_course_view.dart';
+import 'package:attendance_app/features/home/presentation/manager/provider/dark_mode_provider.dart';
 import 'package:attendance_app/features/home/presentation/views/add_subject_view.dart';
 import 'package:attendance_app/features/home/presentation/views/widgets/course_card_widget.dart';
 import 'package:attendance_app/features/home/presentation/views/widgets/no_course_found_widget.dart';
@@ -11,10 +13,11 @@ import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/features/home/presentation/views/widgets/admin_drawer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // استيراد Firebase Auth
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:provider/provider.dart';
 
 class AdminHomeScreen extends StatefulWidget {
-  const AdminHomeScreen({Key? key}) : super(key: key);
+  const AdminHomeScreen({super.key});
 
   @override
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
@@ -25,14 +28,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   List<Map<String, dynamic>> filteredSubjects = [];
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
-  String? adminUid; // لتخزين uid الخاص بالـ admin
+  String? adminUid; // To store admin's uid
 
   @override
   void initState() {
     super.initState();
-    _getAdminUid(); // استرجاع uid الخاص بالـ admin عند بدء الشاشة
+    _getAdminUid(); // Get admin uid when screen starts
     searchController.addListener(() {
       filterSubjects(searchController.text);
+    });
+
+    // Update unread notifications count when screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppProvider>(context, listen: false)
+          .fetchUnreadNotificationsCount();
     });
   }
 
@@ -42,15 +51,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     super.dispose();
   }
 
-  // دالة لاسترجاع uid الخاص بالـ admin بناءً على email
+  // Function to retrieve admin uid based on email
   Future<void> _getAdminUid() async {
     try {
-      // الحصول على المستخدم الحالي من Firebase Auth
+      // Get current user from Firebase Auth
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         String email = currentUser.email ?? '';
         if (email.isNotEmpty) {
-          // البحث في مجموعة users للحصول على uid بناءً على email
+          // Search in users collection to get uid based on email
           QuerySnapshot userSnapshot = await FirebaseFirestore.instance
               .collection('users')
               .where('email', isEqualTo: email)
@@ -58,8 +67,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
           if (userSnapshot.docs.isNotEmpty) {
             setState(() {
-              adminUid =
-                  userSnapshot.docs.first.id; // تخزين uid الخاص بالـ admin
+              adminUid = userSnapshot.docs.first.id; // Store admin's uid
             });
           } else {
             print('No user found with this email');
@@ -77,17 +85,28 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   void filterSubjects(String query) {
     setState(() {
-      // لا حاجة لتصفية محلية، لأننا نعتمد على StreamBuilder
+      // No need for local filtering, we rely on StreamBuilder
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<DarkModeProvider>(context).isDarkMode;
+    final appProvider = Provider.of<AppProvider>(context);
+
     return Scaffold(
       key: _scaffoldMessengerKey,
-      backgroundColor: AppColors.whiteColor,
+      backgroundColor: isDarkMode ? Colors.black : AppColors.whiteColor,
       drawer: const AdminDrawer(),
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text(
@@ -98,6 +117,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        backgroundColor: isDarkMode ? Colors.grey[900] : AppColors.primaryColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -111,13 +131,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             Expanded(
               child: adminUid == null
                   ? const Center(
-                      child:
-                          CircularProgressIndicator()) // عرض مؤشر تحميل أثناء جلب adminUid
+                      child: CircularProgressIndicator(
+                      color: AppColors.primaryColor,
+                    )) // Show loading indicator while fetching adminUid
                   : StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('Courses')
                           .where('adminID',
-                              isEqualTo: adminUid) // تصفية بناءً على adminID
+                              isEqualTo: adminUid) // Filter based on adminID
                           .snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -152,7 +173,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           itemBuilder: (context, index) {
                             var subjectData =
                                 subjects[index].data() as Map<String, dynamic>;
-                            String courseId = subjects[index].id; // معرف المادة
+                            String courseId = subjects[index].id; // Course ID
                             String courseName =
                                 subjectData['courseName']?.toString() ??
                                     'Unknown Subject';
@@ -176,9 +197,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => SubjectScreen(
-                                          courseId: courseId, // تمرير courseId
+                                          courseId: courseId, // Pass courseId
                                           courseName:
-                                              courseName, // تمرير اسم المادة
+                                              courseName, // Pass course name
                                         ),
                                       ),
                                     );
@@ -212,15 +233,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        heroTag: "fab_admin_home_screen",
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddSubjectPage()),
+            MaterialPageRoute(
+              builder: (context) => AddSubjectPage(),
+            ),
           );
         },
         backgroundColor: AppColors.primaryColor,
-        shape: const CircleBorder(),
         child: const Icon(
           Icons.add,
           color: Colors.white,
@@ -230,84 +251,43 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   void _showBottomSheet(
-      BuildContext parentContext, String docId, String courseName) {
+      BuildContext context, String courseId, String courseName) {
     showModalBottomSheet(
-      context: parentContext,
+      context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(15),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
       ),
-      builder: (BuildContext bottomSheetContext) {
+      builder: (context) {
         return Container(
           padding: const EdgeInsets.all(16),
+          height: 150,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.edit, color: Colors.blue),
-                title: Text('Update'),
-                onTap: () async {
-                  // جلب بيانات المادة الحالية من Firestore
-                  DocumentSnapshot doc = await FirebaseFirestore.instance
-                      .collection('Courses')
-                      .doc(docId)
-                      .get();
-                  var subjectData = doc.data() as Map<String, dynamic>;
-
-                  Navigator.pop(bottomSheetContext);
+                leading: const Icon(Icons.edit, color: Colors.blue),
+                title: const Text("Update Course"),
+                onTap: () {
+                  Navigator.pop(context);
                   Navigator.push(
-                    parentContext,
+                    context,
                     MaterialPageRoute(
                       builder: (context) => UpdateCoursePage(
-                        courseId: docId,
-                        courseName: subjectData['courseName'] ?? '',
-                        courseCode: subjectData['courseCode'] ?? '',
-                        semester: subjectData['semester'] ?? '',
-                        date: subjectData['date'] ?? '',
+                        courseId: courseId,
+                        courseName: '',
+                        courseCode: '',
+                        semester: '',
+                        date: '',
                       ),
                     ),
                   );
                 },
               ),
-              const Divider(),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete'),
+                title: const Text("Delete Course"),
                 onTap: () {
-                  AwesomeDialog(
-                    context: bottomSheetContext,
-                    dialogType: DialogType.warning,
-                    animType: AnimType.bottomSlide,
-                    title: 'Confirm Deletion',
-                    desc:
-                        'Are you sure you want to delete the course "$courseName"?',
-                    btnCancelOnPress: () {},
-                    btnOkOnPress: () async {
-                      try {
-                        await FirebaseFirestore.instance
-                            .collection('Courses')
-                            .doc(docId)
-                            .delete();
-                        Navigator.pop(bottomSheetContext);
-                        _scaffoldMessengerKey.currentState?.showSnackBar(
-                          const SnackBar(
-                            content: Text('Course deleted successfully'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } catch (e) {
-                        Navigator.pop(bottomSheetContext);
-                        _scaffoldMessengerKey.currentState?.showSnackBar(
-                          SnackBar(
-                            content: Text('Error deleting course: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    dismissOnTouchOutside: true,
-                  ).show();
+                  Navigator.pop(context);
+                  _showDeleteDialog(courseId, courseName);
                 },
               ),
             ],
@@ -315,5 +295,45 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         );
       },
     );
+  }
+
+  void _showDeleteDialog(String courseId, String courseName) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.warning,
+      animType: AnimType.bottomSlide,
+      title: 'Delete Course',
+      desc: 'Are you sure you want to delete $courseName?',
+      btnCancelOnPress: () {},
+      btnOkOnPress: () async {
+        try {
+          // Delete course document from Firestore
+          await FirebaseFirestore.instance
+              .collection('Courses')
+              .doc(courseId)
+              .delete();
+
+          // Show success message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Course deleted successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } catch (e) {
+          // Show error message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error deleting course: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      },
+    ).show();
   }
 }

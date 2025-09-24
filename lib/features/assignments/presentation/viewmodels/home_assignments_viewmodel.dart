@@ -1,8 +1,11 @@
 import 'package:attendance_app/features/assignments/data/models/assignment_model_admin.dart';
 import 'package:attendance_app/features/assignments/data/models/question_model_admin.dart';
+import 'package:attendance_app/features/notifications/data/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:intl/intl.dart';
 
 class HomeAssignmentsViewModel extends ChangeNotifier {
@@ -17,6 +20,7 @@ class HomeAssignmentsViewModel extends ChangeNotifier {
   final String courseId;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   List<AssignmentModel> get assignments => _assignments;
   int? get selectedIndex => _selectedIndex;
@@ -143,15 +147,189 @@ class HomeAssignmentsViewModel extends ChangeNotifier {
       _successMessage = 'Assignment added successfully';
       notifyListeners();
 
+      // إرسال إشعار لجميع الطلاب بإضافة واجب جديد
+      await _sendAssignmentNotification(name);
+
       return newAssignment;
     } catch (e) {
       _errorMessage = 'Error adding assignment: $e';
       print(_errorMessage);
       notifyListeners();
-      throw e;
+      rethrow;
     } finally {
       _isProcessing = false;
       notifyListeners();
+    }
+  }
+
+  // إرسال إشعار لجميع الطلاب بإضافة واجب جديد
+  Future<void> _sendAssignmentNotification(String assignmentName) async {
+    try {
+      // الحصول على الواجب لمعرفة الموعد النهائي
+      final index = _assignments.indexWhere((a) => a.name == assignmentName);
+      String? deadline;
+      
+      if (index != -1) {
+        deadline = _assignments[index].deadline;
+      }
+      
+      // إضافة الإشعار إلى Firestore
+      await _notificationService.sendNotificationToAllStudents(
+        subject: courseName,
+        description: 'New assignment added: $assignmentName',
+        courseId: courseId,
+        type: 'assignment',
+        deadline: deadline,
+      );
+      
+      // إرسال إشعار FCM لجميع الطلاب
+      await _sendPushNotificationToAllStudents(
+        title: courseName,
+        body: 'New assignment added: $assignmentName',
+        type: 'assignment',
+        courseId: courseId,
+        deadline: deadline,
+      );
+      
+      print('Successfully sent notification to all students');
+    } catch (e) {
+      print('Error sending notification: $e');
+      // لا نريد توقف العملية إذا فشل إرسال الإشعار
+    }
+  }
+  
+  // إرسال إشعار FCM لجميع الطلاب
+  Future<void> _sendPushNotificationToAllStudents({
+    required String title,
+    required String body,
+    required String type,
+    String? courseId,
+    String? deadline,
+  }) async {
+    try {
+      // الحصول على tokens FCM لجميع الطلاب
+      final studentsSnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'student')
+          .get();
+      
+      // استخراج الـ FCM tokens
+      final List<String> fcmTokens = [];
+      for (var doc in studentsSnapshot.docs) {
+        final userData = doc.data();
+        if (userData.containsKey('fcmToken') && userData['fcmToken'] != null) {
+          fcmTokens.add(userData['fcmToken']);
+        }
+      }
+      
+      if (fcmTokens.isEmpty) {
+        print('No FCM tokens found for students');
+        return;
+      }
+      
+      // الحصول على اسم الدكتور
+      String? doctorName;
+      final user = _auth.currentUser;
+      if (user != null) {
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          doctorName = userDoc.data()?['name'] ?? 'Unknown';
+        }
+      }
+      
+      // إرسال الإشعار لكل token
+      for (String token in fcmTokens) {
+        await _sendFCMNotification(
+          token: token,
+          title: title,
+          body: body,
+          type: type,
+          courseId: courseId,
+          deadline: deadline,
+          doctorName: doctorName,
+        );
+      }
+    } catch (e) {
+      print('Error sending FCM notification to students: $e');
+    }
+  }
+  
+  // إرسال إشعار FCM
+  Future<void> _sendFCMNotification({
+    required String token,
+    required String title,
+    required String body,
+    required String type,
+    String? courseId,
+    String? deadline,
+    String? doctorName,
+  }) async {
+    try {
+      // استخدام Firebase Cloud Messaging API
+      const String fcmUrl = 'https://fcm.googleapis.com/fcm/send';
+      
+      // استخدام مفتاح خادم FCM (يجب استبداله بمفتاح الخادم الخاص بك)
+      const String serverKey = 'AAAAfPZjuO0:APA91bGeGvDVdh9NQsMUd9Nq4LlCgmg_U-P4QmKFBGGf5SQUkdAo3XBX1xEcLLYWy2bSvGEGPj-OspZPvbDUTnvE77fLHv1w_YKG3UdF5aeMwrUhEijgFEVCbFiNd7RVIz8VUt1Yei32';
+      
+      final now = DateTime.now();
+      final formattedTime = DateFormat('HH:mm').format(now);
+      
+      final response = await http.post(
+        Uri.parse(fcmUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'key=$serverKey',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'to': token,
+          'notification': {
+            'title': title,
+            'body': body,
+            'sound': 'default',
+            'android_channel_id': 'high_importance_channel',
+            'badge': '1',
+          },
+          'data': {
+            'type': type,
+            'courseId': courseId,
+            'deadline': deadline,
+            'doctorName': doctorName,
+            'time': formattedTime,
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+          },
+          'android': {
+            'priority': 'high',
+            'notification': {
+              'notification_priority': 'PRIORITY_MAX',
+              'default_sound': true,
+              'default_vibrate_timings': true,
+              'default_light_settings': true,
+              'visibility': 'PUBLIC',
+              'channel_id': 'high_importance_channel',
+            },
+          },
+          'apns': {
+            'payload': {
+              'aps': {
+                'sound': 'default',
+                'badge': 1,
+                'content-available': 1,
+                'mutable-content': 1,
+              }
+            }
+          },
+          'priority': 'high',
+          'content_available': true,
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        print('Successfully sent FCM notification');
+      } else {
+        print('Failed to send FCM notification: ${response.body}');
+      }
+    } catch (e) {
+      print('Error sending FCM notification: $e');
     }
   }
 
@@ -194,7 +372,7 @@ class HomeAssignmentsViewModel extends ChangeNotifier {
       _errorMessage = 'Error updating assignment: $e';
       print(_errorMessage);
       notifyListeners();
-      throw e;
+      rethrow;
     } finally {
       _isProcessing = false;
       notifyListeners();
@@ -270,7 +448,7 @@ class HomeAssignmentsViewModel extends ChangeNotifier {
       _errorMessage = 'Error updating assignment details: $e';
       print(_errorMessage);
       notifyListeners();
-      throw e;
+      rethrow;
     } finally {
       _isProcessing = false;
       notifyListeners();

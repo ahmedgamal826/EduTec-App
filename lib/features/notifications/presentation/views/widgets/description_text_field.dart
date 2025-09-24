@@ -55,8 +55,7 @@ import 'package:attendance_app/core/utils/app_colors.dart';
 class DescriptionTextField extends StatelessWidget {
   final TextEditingController controller;
 
-  const DescriptionTextField({Key? key, required this.controller})
-      : super(key: key);
+  const DescriptionTextField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {

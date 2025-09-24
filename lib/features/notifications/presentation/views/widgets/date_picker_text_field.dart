@@ -67,10 +67,10 @@ class DatePickerTextField extends StatelessWidget {
   final Function(String) onDateSelected;
 
   const DatePickerTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onDateSelected,
-  }) : super(key: key);
+  });
 
   void _selectDate(BuildContext context) async {
     DateTime? picked = await showDatePicker(

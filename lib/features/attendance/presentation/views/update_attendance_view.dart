@@ -8,7 +8,7 @@ class UpdateStudentPage extends StatefulWidget {
   final Map<String, dynamic> student;
   final String studentId; // معرف الطالب في Firestore
 
-  UpdateStudentPage({required this.student, required this.studentId});
+  const UpdateStudentPage({super.key, required this.student, required this.studentId});
 
   @override
   _UpdateStudentPageState createState() => _UpdateStudentPageState();

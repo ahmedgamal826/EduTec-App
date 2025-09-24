@@ -8,8 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
-
-import 'package:uuid/uuid.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class ChatViewModel extends ChangeNotifier {
   final ChatRepository _chatRepository;
@@ -23,12 +22,64 @@ class ChatViewModel extends ChangeNotifier {
   final TextEditingController messageController = TextEditingController();
   final ScrollController scrollController = ScrollController();
   late Stream<List<ChatModel>> _chatStream;
-  StreamSubscription<List<ChatModel>>?
-      _chatStreamSubscription; // Added subscription variable
+  StreamSubscription<List<ChatModel>>? _chatStreamSubscription;
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  bool _isInChatScreen = false; // لتتبع ما إذا كان المستخدم في شاشة المحادثة حاليًا
 
   ChatViewModel(this._chatRepository) {
+    _initializeNotifications();
     _chatStream = _chatRepository.getChatsStream();
     listenToChats();
+  }
+
+  // تهيئة الإشعارات المحلية
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    
+    final DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+      requestAlertPermission: true,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'chat_category',
+          actions: [
+            DarwinNotificationAction.plain(
+              'open',
+              'فتح',
+              options: {DarwinNotificationActionOption.foreground},
+            ),
+          ],
+          options: {
+            DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
+          },
+        )
+      ],
+    );
+    
+    final InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+    );
+    
+    await _localNotifications.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // يمكن إضافة معالجة النقر على الإشعار هنا
+      },
+    );
+  }
+
+  // تعيين حالة شاشة المحادثة
+  void setInChatScreen(bool isInChat, String? chatId) {
+    _isInChatScreen = isInChat;
+    if (isInChat && chatId != null) {
+      _currentChatId = chatId;
+    } else if (!isInChat) {
+      _currentChatId = null;
+    }
   }
 
   List<ChatModel> get chats => _chats;
@@ -42,6 +93,9 @@ class ChatViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     _chatStreamSubscription = _chatStream.listen((chatList) {
+      // التحقق من الرسائل الجديدة
+      _checkForNewMessages(chatList);
+      
       _allChats = chatList;
       _chats = List.from(chatList);
 
@@ -59,6 +113,85 @@ class ChatViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     });
+  }
+
+  // التحقق من وجود رسائل جديدة وإظهار إشعارات
+  void _checkForNewMessages(List<ChatModel> newChatList) {
+    if (_allChats.isEmpty) return; // تجاهل المرة الأولى
+    
+    for (var newChat in newChatList) {
+      // البحث عن المحادثة في القائمة القديمة
+      final oldChat = _allChats.firstWhere(
+        (chat) => chat.id == newChat.id,
+        orElse: () => newChat, // إذا كانت محادثة جديدة تمامًا
+      );
+      
+      // التحقق من زيادة عدد الرسائل غير المقروءة
+      if (newChat.unreadCount > oldChat.unreadCount) {
+        // إذا كان المستخدم ليس في شاشة المحادثة أو في محادثة أخرى
+        if (!_isInChatScreen || _currentChatId != newChat.id) {
+          _showChatNotification(newChat);
+        }
+      }
+    }
+  }
+
+  // عرض إشعار للرسالة الجديدة
+  Future<void> _showChatNotification(ChatModel chat) async {
+    try {
+      // الحصول على آخر رسالة
+      String messageText = chat.lastMessage;
+      
+      // تكوين تفاصيل الإشعار لنظام Android
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'chat_channel',
+        'Chat Notifications',
+        channelDescription: 'Notifications for new chat messages',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound('custom_sound'),
+        icon: '@mipmap/ic_launcher',
+        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        enableVibration: true,
+        enableLights: true,
+        color: Color.fromARGB(255, 0, 102, 204),
+        ledColor: Color.fromARGB(255, 0, 102, 204),
+        ledOnMs: 1000,
+        ledOffMs: 500,
+        ticker: 'رسالة جديدة',
+        visibility: NotificationVisibility.public,
+      );
+
+      // تكوين تفاصيل الإشعار لنظام iOS
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: 'custom_sound.caf',
+        interruptionLevel: InterruptionLevel.timeSensitive,
+        threadIdentifier: 'chat_thread',
+      );
+
+      // تكوين تفاصيل الإشعار لجميع الأنظمة
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      // عرض الإشعار
+      await _localNotifications.show(
+        chat.id.hashCode, // معرف فريد للإشعار
+        chat.name,
+        messageText,
+        notificationDetails,
+        payload: chat.id, // تمرير معرف المحادثة كـ payload
+      );
+      
+      print('تم عرض إشعار للرسالة الجديدة');
+    } catch (e) {
+      print('خطأ في عرض إشعار الرسالة: $e');
+    }
   }
 
   void filterChats(String query) {
@@ -226,7 +359,7 @@ class ChatViewModel extends ChangeNotifier {
     scrollToBottom();
   }
 
-// // تعديل دالة sendMessage
+// تعديل دالة sendMessage لإضافة إرسال الإشعارات
   Future<void> sendMessage(String chatId, String message, bool isText) async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -290,6 +423,14 @@ class ChatViewModel extends ChangeNotifier {
         });
       }
 
+      // إرسال إشعار للمستلم
+      _sendNotificationToRecipient(
+        recipientId: recipientId,
+        chatId: chatId,
+        senderName: _chats[chatIndex].names[currentUser.uid] ?? 'User',
+        messageContent: isText ? message : 'صورة جديدة',
+      );
+
       messageController.clear();
       notifyListeners();
       scrollToBottom();
@@ -299,152 +440,46 @@ class ChatViewModel extends ChangeNotifier {
     }
   }
 
-//   Future<void> sendMessage(String chatId, String text, bool isText) async {
-//   if (text.trim().isEmpty) return;
+  // دالة جديدة لإرسال الإشعارات
+  Future<void> _sendNotificationToRecipient({
+    required String recipientId,
+    required String chatId,
+    required String senderName,
+    required String messageContent,
+  }) async {
+    try {
+      // الحصول على FCM token للمستلم
+      final recipientDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(recipientId)
+          .get();
 
-//   final messageData = {
-//     'messageId': const Uuid().v4(),
-//     'text': text,
-//     'senderId': FirebaseAuth.instance.currentUser?.uid,
-//     'time': DateTime.now().toIso8601String(),
-//     'isRead': false,
-//     'isImage': !isText,
-//     'isDocument': false,
-//     'fileName': null,
-//   };
+      final fcmToken = recipientDoc.data()?['fcmToken'];
 
-//   try {
-//     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-//     if (currentUserId == null) {
-//       _errorMessage = 'لا يوجد مستخدم مسجل الدخول';
-//       notifyListeners();
-//       return;
-//     }
+      if (fcmToken == null || fcmToken.isEmpty) {
+        log('لا يوجد FCM token للمستخدم: $recipientId');
+        return;
+      }
 
-//     // التحقق من وجود مستند الدردشة
-//     final chatDocRef =
-//         FirebaseFirestore.instance.collection('users_chats').doc(chatId);
-//     final chatDoc = await chatDocRef.get();
+      // إرسال الإشعار باستخدام sendNotification
+      await sendNotification(
+        token: fcmToken,
+        title: senderName,
+        body: messageContent,
+        data: {
+          'route': '/chat',
+          'chatId': chatId,
+          'senderId': FirebaseAuth.instance.currentUser?.uid ?? '',
+        },
+      );
 
-//     String recipientId = '';
-//     if (!chatDoc.exists) {
-//       // جلب recipientId من ChatModel
-//       final chatIndex = _chats.indexWhere((chat) => chat.id == chatId);
-//       if (chatIndex == -1) {
-//         throw Exception('الدردشة غير موجودة في القائمة المحلية');
-//       }
-//       final participants = _chats[chatIndex].participants;
-//       recipientId = participants.firstWhere(
-//         (id) => id != currentUserId,
-//         orElse: () => '',
-//       );
-//       if (recipientId.isEmpty) {
-//         throw Exception('لم يتم العثور على معرف المستلم');
-//       }
-
-//       // إنشاء مستند الدردشة إذا لم يكن موجودًا
-//       final currentUserDoc = await FirebaseFirestore.instance
-//           .collection('users')
-//           .doc(currentUserId)
-//           .get();
-//       final recipientDoc = await FirebaseFirestore.instance
-//           .collection('users')
-//           .doc(recipientId)
-//           .get();
-
-//       if (!currentUserDoc.exists || !recipientDoc.exists) {
-//         throw Exception('بيانات المستخدم أو المستلم غير موجودة');
-//       }
-
-//       await chatDocRef.set({
-//         'participants': [currentUserId, recipientId],
-//         'names': {
-//           currentUserId: currentUserDoc.data()?['name'] ?? 'Unknown',
-//           recipientId: recipientDoc.data()?['name'] ?? 'Unknown',
-//         },
-//         'avatars': {
-//           currentUserId: currentUserDoc.data()?['avatar'] ?? '',
-//           recipientId: recipientDoc.data()?['avatar'] ?? '',
-//         },
-//         'lastMessage': '',
-//         'timestamp': FieldValue.serverTimestamp(),
-//         'messages': [],
-//         'unreadCounts': {currentUserId: 0, recipientId: 0},
-//         'hasCheckmark': false,
-//       }, SetOptions(merge: true));
-//     } else {
-//       // إذا كان المستند موجودًا، جلب recipientId من المستند
-//       final participants = chatDoc['participants'] as List<dynamic>? ?? [];
-//       recipientId = participants.firstWhere(
-//         (id) => id != currentUserId,
-//         orElse: () => '',
-//       );
-//       if (recipientId.isEmpty) {
-//         throw Exception('لم يتم العثور على معرف المستلم في مستند الدردشة');
-//       }
-//     }
-
-//     // إضافة الرسالة محليًا
-//     _localMessages.add({...messageData, 'isMe': true});
-//     notifyListeners();
-
-//     // إرسال الرسالة إلى Firestore
-//     await _chatRepository.sendMessage(chatId, messageData);
-
-//     // تحديث بيانات الدردشة
-//     await chatDocRef.update({
-//       'lastMessage': text,
-//       'timestamp': FieldValue.serverTimestamp(),
-//       'unreadCounts.$currentUserId': 0,
-//       'unreadCounts.$recipientId': FieldValue.increment(1),
-//     });
-
-//     // استرجاع رمز FCM للمستلم وإرسال الإشعار
-//     final recipientDoc = await FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(recipientId)
-//         .get();
-//     if (!recipientDoc.exists || recipientDoc.data() == null) {
-//       log('لم يتم العثور على مستند المستلم للمعرف: $recipientId, chatId: $chatId');
-//       return;
-//     }
-//     final recipientFcmToken = recipientDoc.data()!['fcmToken'] as String?;
-
-//     // استرجاع اسم المرسل
-//     final senderDoc = await FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(currentUserId)
-//         .get();
-//     if (!senderDoc.exists || senderDoc.data() == null) {
-//       log('لم يتم العثور على مستند المرسل للمعرف: $currentUserId, chatId: $chatId');
-//       return;
-//     }
-//     final senderName = senderDoc.data()!['name'] as String? ?? 'غير معروف';
-
-//     if (recipientFcmToken != null && recipientFcmToken.isNotEmpty) {
-//       // إرسال الإشعار
-//       await sendNotification(
-//         token: recipientFcmToken,
-//         title: 'رسالة جديدة من $senderName',
-//         body: text,
-//         data: {
-//           'route': '/chat',
-//           'chatId': chatId,
-//         },
-//       );
-//     } else {
-//       log('لم يتم العثور على رمز FCM للمستلم: $recipientId, chatId: $chatId');
-//     }
-
-//     messageController.clear();
-//     scrollToBottom();
-//   } catch (e) {
-//     _localMessages
-//         .removeWhere((msg) => msg['messageId'] == messageData['messageId']);
-//     _errorMessage = 'فشل إرسال الرسالة: $e';
-//     notifyListeners();
-//   }
-// }
+      log('تم إرسال إشعار إلى المستخدم: $recipientId');
+    } catch (e) {
+      log('خطأ في إرسال الإشعار: $e');
+      // لا نريد أن يؤثر فشل إرسال الإشعار على عملية إرسال الرسالة
+      // لذلك نكتفي بتسجيل الخطأ فقط
+    }
+  }
 
   // void clearErrorMessage() {
   //   _errorMessage = null;
@@ -705,8 +740,8 @@ class ChatViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _chatStreamSubscription?.cancel(); // Cancel the stream subscription
-    _messagesStreamSubscription?.cancel(); // إلغاء اشتراك الرسايل
+    _chatStreamSubscription?.cancel();
+    _messagesStreamSubscription?.cancel();
     messageController.dispose();
     scrollController.dispose();
     super.dispose();

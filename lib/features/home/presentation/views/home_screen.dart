@@ -300,16 +300,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
-  Future<bool> isAdmin() async {
+  Future<bool> isAdminOrDoctor() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection("users")
           .doc(user.uid)
           .get();
-      return userDoc["role"] == "Admin";
+      String role = userDoc["role"]?.toString().toLowerCase() ?? '';
+      return role == "admin" || role == "doctor";
     }
     return false;
   }
@@ -317,7 +318,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: isAdmin(),
+      future: isAdminOrDoctor(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -329,8 +330,8 @@ class HomeScreen extends StatelessWidget {
           );
         }
 
-        bool isAdmin = snapshot.data ?? false;
-        return isAdmin ? const AdminHomeScreen() : const StudentHomeScreen();
+        bool isAdminOrDoctor = snapshot.data ?? false;
+        return isAdminOrDoctor ? const AdminHomeScreen() : const StudentHomeScreen();
       },
     );
   }

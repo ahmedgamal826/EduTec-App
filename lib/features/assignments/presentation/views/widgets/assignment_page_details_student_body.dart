@@ -7,11 +7,11 @@ class TestPageDetailsStudentBody extends StatelessWidget {
   final Function(int) onQuestionChanged;
 
   const TestPageDetailsStudentBody({
-    Key? key,
+    super.key,
     required this.questions,
     required this.currentQuestionIndex,
     required this.onQuestionChanged,
-  }) : super(key: key);
+  });
 
   // معاينة الصورة بشكل كامل
   void _showFullScreenImage(
@@ -74,10 +74,10 @@ class TestPageDetailsStudentBody extends StatelessWidget {
     AssignmentQuestion currentQuestion = questions[currentQuestionIndex];
 
     // الألوان المستخدمة في التطبيق
-    final Color primaryBlue = const Color(0xFF1A75FF);
-    final Color lightBlue = const Color(0xFFF0F7FF);
-    final Color mediumBlue = const Color(0xFFE6F0FF);
-    final Color correctGreen = Colors.green;
+    const Color primaryBlue = Color(0xFF1A75FF);
+    const Color lightBlue = Color(0xFFF0F7FF);
+    const Color mediumBlue = Color(0xFFE6F0FF);
+    const Color correctGreen = Colors.green;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),

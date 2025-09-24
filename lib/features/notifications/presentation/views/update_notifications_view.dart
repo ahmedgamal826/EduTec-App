@@ -9,7 +9,7 @@ class UpdateNotificationsView extends StatefulWidget {
   final Map<String, String> notification;
   final int index;
 
-  const UpdateNotificationsView({
+  const UpdateNotificationsView({super.key, 
     required this.notification,
     required this.index,
   });

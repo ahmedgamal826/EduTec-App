@@ -1,4 +1,4 @@
-# attendance_app
+# attendance
 
 A new Flutter project.
 

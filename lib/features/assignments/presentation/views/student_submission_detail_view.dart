@@ -16,13 +16,13 @@ class StudentSubmissionDetailView extends StatefulWidget {
   final String courseName;
 
   const StudentSubmissionDetailView({
-    Key? key,
+    super.key,
     required this.adminId,
     required this.assignmentId,
     required this.assignmentTitle,
     required this.submission,
     required this.courseName,
-  }) : super(key: key);
+  });
 
   @override
   State<StudentSubmissionDetailView> createState() =>
@@ -34,8 +34,8 @@ class _StudentSubmissionDetailViewState
   int _currentQuestionIndex = 0;
   final _scoreController = TextEditingController();
   final _commentController = TextEditingController();
-  bool _isSubmitting = false;
-  bool _hasLoadedData = false;
+  final bool _isSubmitting = false;
+  final bool _hasLoadedData = false;
 
   // Add maps to store question data
   Map<String, dynamic> _questionData = {};
@@ -100,7 +100,7 @@ class _StudentSubmissionDetailViewState
         }
       }
 
-      if (courseDoc == null || !courseDoc.exists) {
+      if (!courseDoc.exists) {
         throw Exception('Course document not found');
       }
 
@@ -185,17 +185,15 @@ class _StudentSubmissionDetailViewState
                   for (int i = 0; i < options.length; i++) {
                     String optionText = '';
                     var optionData = options[i];
-                    if (optionData is Map<String, dynamic> &&
-                        optionData.containsKey('text')) {
+                    if (optionData.containsKey('text')) {
                       var textValue = optionData['text'];
                       if (textValue != null) {
                         optionText = textValue.toString().toLowerCase();
                       }
                     } else if (optionData is String) {
                       optionText = optionData.toString().toLowerCase();
-                    } else if (optionData != null) {
+                    } else
                       optionText = optionData.toString().toLowerCase();
-                    }
 
                     if (optionText.isNotEmpty &&
                         optionText == correctText.toLowerCase()) {
@@ -384,17 +382,15 @@ class _StudentSubmissionDetailViewState
                     for (int j = 0; j < options.length; j++) {
                       String optionText = '';
                       var optionData = options[j];
-                      if (optionData is Map<String, dynamic> &&
-                          optionData.containsKey('text')) {
+                      if (optionData.containsKey('text')) {
                         var textValue = optionData['text'];
                         if (textValue != null) {
                           optionText = textValue.toString().toLowerCase();
                         }
                       } else if (optionData is String) {
                         optionText = optionData.toString().toLowerCase();
-                      } else if (optionData != null) {
+                      } else
                         optionText = optionData.toString().toLowerCase();
-                      }
 
                       if (optionText.isNotEmpty &&
                           optionText == correctText.toLowerCase()) {
@@ -1170,7 +1166,7 @@ class _StudentSubmissionDetailViewState
                     label: 'Score',
                     value: scoreDisplay,
                     icon: Icons.star,
-                    iconColor: Colors.amber, // Changed to amber as requested
+                    iconColor: Colors.amber,
                   ),
                   _buildInfoCard(
                     label: 'Submitted',
@@ -1249,6 +1245,8 @@ class _StudentSubmissionDetailViewState
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ],
         ),
@@ -1398,7 +1396,7 @@ class _StudentSubmissionDetailViewState
     }
 
     final normalizedType = response.questionType
-            ?.toLowerCase()
+            .toLowerCase()
             .replaceAll('_', '')
             .replaceAll(' ', '')
             .trim() ??
@@ -1428,110 +1426,60 @@ class _StudentSubmissionDetailViewState
   Widget _buildMultipleChoiceResponse(StudentResponse response) {
     final selectedOption = response.selectedOption ?? -1;
     final correctOption = _correctAnswers[response.questionId] ?? -1;
-    var isCorrect = response.isCorrect ?? false;
-    final isGraded = response.score != null;
+    final actualCorrectOption = correctOption >= 0 ? correctOption : -1;
 
-    // Get the options for this question
-    final options = _optionsData[response.questionId] ?? [];
+    // Get selected answer text if available
+    final selectedAnswerText = response.selectedAnswerText;
 
-    // TEXT-BASED COMPARISON IMPROVEMENT
-    // Get the text-based answers if available
-    String? selectedAnswerText = response.selectedAnswerText;
-    if (selectedAnswerText == null &&
-        selectedOption >= 0 &&
-        selectedOption < options.length) {
-      selectedAnswerText = getOptionText(response.questionId, selectedOption);
-    }
+    // For true/false questions with boolean instead of index
+    final isCorrect = response.isCorrect ?? false;
+    final isGraded = response.isCorrect != null;
 
-    String? correctAnswerText = response.correctAnswerText;
-    if (correctAnswerText == null) {
-      // Try to get correct answer from _questionData
-      final questionData = _questionData[response.questionId];
-      if (questionData != null && questionData['correct'] != null) {
-        final correctStr = questionData['correct'].toString();
-        try {
-          // If correct answer is a number/index
-          int correctIdx = int.parse(correctStr);
-          if (correctIdx >= 0 && correctIdx < options.length) {
-            correctAnswerText = options[correctIdx].toString();
-          }
-        } catch (e) {
-          // If not a number, it might be direct text
-          correctAnswerText = correctStr;
-        }
-      }
-    }
-
-    print(
-        '🔍 MCQ Text Comparison: Selected="$selectedAnswerText", Correct="$correctAnswerText"');
-
-    // Determine which option is correct based on text matching
-    int actualCorrectOption = correctOption;
-    if (correctAnswerText != null && options.isNotEmpty) {
-      for (int i = 0; i < options.length; i++) {
-        String optionText = getOptionText(response.questionId, i).toLowerCase();
-        if (optionText == correctAnswerText.toLowerCase()) {
-          actualCorrectOption = i;
-          print('☑️ Found correct option "$correctAnswerText" at index $i');
-          break;
-        }
-      }
-    }
-
-    // If the answer is marked correct but actual correct option doesn't match,
-    // trust the isCorrect flag and update actualCorrectOption
-    if (isCorrect &&
-        selectedOption != -1 &&
-        selectedOption != actualCorrectOption) {
-      actualCorrectOption = selectedOption;
-      print(
-          '⚠️ Trusting isCorrect flag, setting correct option to selected option ($selectedOption)');
-    }
-
-    print(
-        '🔍 MCQ Display: selected=$selectedOption, correct=$actualCorrectOption, isCorrect=$isCorrect');
-
-    // Final debug output
-    print(
-        '🔍 MCQ Response: selected=$selectedOption, correct=$actualCorrectOption, isCorrect=$isCorrect');
+    // Get options from data store
+    final options = _getOptionsForQuestion(response.questionId);
 
     return Card(
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(15),
       ),
       elevation: 7,
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with question type and status badge
+            // Header with question type and badge
             Row(
               children: [
-                const Text(
-                  'Multiple Choice Question',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                const Expanded(
+                  child: Text(
+                    'Multiple Choice Question',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
-                const Spacer(),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: isCorrect
                         ? Colors.green.withOpacity(0.1)
                         : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isCorrect
                           ? Colors.green.withOpacity(0.5)
                           : Colors.red.withOpacity(0.5),
+                      width: 1.5,
                     ),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         isCorrect ? Icons.check_circle : Icons.cancel,
@@ -1553,20 +1501,31 @@ class _StudentSubmissionDetailViewState
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            // Question text from actual data
-            Text(
-              getQuestionText(response.questionId),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+            // Question text
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey.shade200,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                getQuestionText(response.questionId),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Options with actual text
+            // Options list
             ...List.generate(options.length, (index) {
               final isSelected = index == selectedOption ||
                   (selectedAnswerText != null &&
@@ -1578,26 +1537,26 @@ class _StudentSubmissionDetailViewState
               Color bgColor = Colors.white;
               Color textColor = Colors.black87;
 
-              // تحديد الألوان بناءً على الحالة
+              // Set colors based on state
               if (isGraded) {
                 if (isSelected && isCorrect) {
-                  // إجابة صحيحة تم اختيارها
+                  // Correct answer selected
                   borderColor = Colors.green;
                   bgColor = Colors.green.withOpacity(0.05);
                   textColor = Colors.green.shade700;
                 } else if (isSelected && !isCorrect) {
-                  // إجابة خاطئة تم اختيارها
+                  // Incorrect answer selected
                   borderColor = Colors.red;
                   bgColor = Colors.red.withOpacity(0.05);
                   textColor = Colors.red.shade700;
                 } else if (isCorrectOption && !isSelected) {
-                  // الإجابة الصحيحة (لما الطالب يختار إجابة خاطئة)
+                  // Correct answer (that student didn't select)
                   borderColor = Colors.green;
                   bgColor = Colors.green.withOpacity(0.05);
                   textColor = Colors.green.shade700;
                 }
               } else if (isSelected) {
-                // حالة غير مقيمة ومحددة
+                // Ungraded but selected
                 borderColor = Colors.blue;
                 bgColor = Colors.blue.withOpacity(0.05);
                 textColor = Colors.blue.shade700;
@@ -1605,20 +1564,29 @@ class _StudentSubmissionDetailViewState
 
               return Container(
                 width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   border: Border.all(color: borderColor, width: 1.5),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                   color: bgColor,
+                  boxShadow: isSelected || isCorrectOption
+                      ? [
+                          BoxShadow(
+                            color: borderColor.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : null,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
                       // Option letter
                       Container(
-                        width: 24,
-                        height: 24,
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
@@ -1644,8 +1612,8 @@ class _StudentSubmissionDetailViewState
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      // Option text from actual data
+                      const SizedBox(width: 14),
+                      // Option text
                       Expanded(
                         child: Text(
                           getOptionText(response.questionId, index),
@@ -1658,7 +1626,7 @@ class _StudentSubmissionDetailViewState
                           ),
                         ),
                       ),
-                      // إضافة الأيقونة حسب الحالة
+                      // Icons based on state
                       if (isGraded) ...[
                         if (isSelected && isCorrect)
                           const Icon(
@@ -1684,10 +1652,7 @@ class _StudentSubmissionDetailViewState
                 ),
               );
             }),
-
             const SizedBox(height: 16),
-
-            // Score - FIXED to always show correct points based on isCorrect
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -1711,17 +1676,7 @@ class _StudentSubmissionDetailViewState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Score: ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isCorrect
-                          ? Colors.green.shade700
-                          : Colors.red.shade700,
-                    ),
-                  ),
-                  Text(
-                    isCorrect ? "1 point" : "0 points",
+                    'Score: ${isCorrect ? "1" : "0"} point${isCorrect ? "" : "s"}',
                     style: TextStyle(
                       fontSize: 16,
                       color: isCorrect
@@ -1732,40 +1687,7 @@ class _StudentSubmissionDetailViewState
                   ),
                 ],
               ),
-            ),
-
-            // Teacher comment (if any)
-            if (response.teacherComment != null &&
-                response.teacherComment!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                'Teacher Comment:',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Text(
-                  response.teacherComment!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ],
+            )
           ],
         ),
       ),
@@ -1975,7 +1897,7 @@ class _StudentSubmissionDetailViewState
                   ),
                 ),
               );
-            }).toList(),
+            }),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(10),
@@ -2071,30 +1993,6 @@ class _StudentSubmissionDetailViewState
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      if (isGraded && viewModel.isAdmin) // استخدام isAdmin هنا
-                        CircleAvatar(
-                          backgroundColor: AppColors.primaryColor,
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                            ),
-                            onPressed: () async {
-                              setState(() {
-                                response.score = 1;
-                                response.isCorrect = true;
-                              });
-                              await viewModel.gradeFileResponse(
-                                widget.submission.studentId,
-                                response.questionId,
-                                1,
-                                null,
-                              );
-                              setState(() {});
-                            },
-                          ),
-                        ),
                     ],
                   ),
                 ],
@@ -2108,6 +2006,40 @@ class _StudentSubmissionDetailViewState
                 ),
               ),
               const SizedBox(height: 20),
+              // عرض الإجابة النصية إذا وجدت
+              if (response.textAnswer != null &&
+                  response.textAnswer!.isNotEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Text Answer:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        response.textAnswer!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (fileUrl != null && fileUrl.isNotEmpty) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -2191,53 +2123,212 @@ class _StudentSubmissionDetailViewState
                 ),
               ],
               const SizedBox(height: 20),
-              if (!isGraded) ...[
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      //  response.score = 1; // Set score to 1
-                      response.isCorrect = true; // Mark as correct
-                    });
-                    await _updateSubmissionScore(response);
-                    setState(() {}); // Refresh UI
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Score 1',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ] else ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Row(
+              if (viewModel.isAdmin) ...[
+                if (!isGraded) ...[
+                  // Interfaz de calificación para administradores
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.star,
-                        color: Colors.amber,
-                        size: 24,
+                      // Botón correcto (1 punto)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            setState(() {
+                              response.score = 1;
+                              response.isCorrect = true;
+                            });
+                            await viewModel.gradeFileResponse(
+                              widget.submission.studentId,
+                              response.questionId,
+                              1,
+                              null,
+                            );
+                            setState(() {});
+                          },
+                          icon: const Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Correct (1 point)',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        'Score: $score point${score == 1 ? '' : 's'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      // Botón incorrecto (0 puntos)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            setState(() {
+                              response.score = 0;
+                              response.isCorrect = false;
+                            });
+                            await viewModel.gradeFileResponse(
+                              widget.submission.studentId,
+                              response.questionId,
+                              0,
+                              null,
+                            );
+                            setState(() {});
+                          },
+                          icon: const Icon(
+                            Icons.cancel,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Incorrect (0 points)',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
+                ] else ...[
+                  // Mostrar puntuación y permitir volver a calificar
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color:
+                          score > 0 ? Colors.green.shade50 : Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: score > 0
+                              ? Colors.green.shade200
+                              : Colors.red.shade200),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              score > 0 ? Icons.check_circle : Icons.cancel,
+                              color: score > 0 ? Colors.green : Colors.red,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Score: $score point${score == 1 ? '' : 's'}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: score > 0
+                                    ? Colors.green.shade800
+                                    : Colors.red.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Botón para volver a calificar
+                        ElevatedButton(
+                          onPressed: () {
+                            // Cambiar la calificación al valor opuesto
+                            setState(() {
+                              response.score = (score ?? 0) > 0 ? 0 : 1;
+                              response.isCorrect = (response.score ?? 0) > 0;
+                            });
+                            viewModel.gradeFileResponse(
+                              widget.submission.studentId,
+                              response.questionId,
+                              response.score!,
+                              null,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Change to ${score > 0 ? 'Incorrect' : 'Correct'}',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ] else ...[
+                // Interfaz para estudiantes
+                if (!isGraded) ...[
+                  // Mostrar mensaje de espera para estudiantes
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.hourglass_empty,
+                          color: Colors.orange.shade700,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Waiting for instructor to grade this submission',
+                            style: TextStyle(
+                              color: Colors.orange.shade800,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  // Mostrar resultado para estudiantes
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color:
+                          score > 0 ? Colors.green.shade50 : Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: score > 0
+                              ? Colors.green.shade200
+                              : Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          score > 0 ? Icons.check_circle : Icons.cancel,
+                          color: score > 0 ? Colors.green : Colors.red,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Score: $score point${score == 1 ? '' : 's'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: score > 0
+                                ? Colors.green.shade800
+                                : Colors.red.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
               if (response.teacherComment != null &&
                   response.teacherComment!.isNotEmpty) ...[
@@ -2277,8 +2368,9 @@ class _StudentSubmissionDetailViewState
 
 // دالة جديدة لتحديد الأيقونة بناءً على نوع الملف
   IconData _getFileIcon(String? fileName) {
-    if (fileName == null || fileName.isEmpty)
+    if (fileName == null || fileName.isEmpty) {
       return Icons.insert_drive_file_outlined;
+    }
 
     // استخراج الامتداد من الـ URL
     final extension = fileName.split('.').last.toLowerCase();
@@ -2344,7 +2436,7 @@ class _StudentSubmissionDetailViewState
 
     // Extract text from option
     final option = options[index];
-    if (option is Map<String, dynamic> && option.containsKey('text')) {
+    if (option.containsKey('text')) {
       return option['text'].toString();
     } else {
       return option.toString();
@@ -2400,5 +2492,10 @@ class _StudentSubmissionDetailViewState
 
   String _formatDate(DateTime date) {
     return DateFormat('MMM d, yyyy - h:mm a').format(date);
+  }
+
+  // Helper method to get options for a question
+  List<dynamic> _getOptionsForQuestion(String questionId) {
+    return _optionsData[questionId] ?? [];
   }
 }

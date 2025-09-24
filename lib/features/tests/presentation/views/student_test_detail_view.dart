@@ -20,11 +20,11 @@ class StudentTestDetailView extends StatefulWidget {
   final String testTitle;
 
   const StudentTestDetailView({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.testId,
     required this.testTitle,
-  }) : super(key: key);
+  });
 
   @override
   State<StudentTestDetailView> createState() => _StudentTestDetailViewState();
@@ -171,16 +171,7 @@ class _StudentTestDetailViewState extends State<StudentTestDetailView> {
       ),
       child: Consumer<TestsStudentDetailViewModel>(
         builder: (context, viewModel, child) {
-          // Start timer when view model is loaded and has exam data
-          if (!viewModel.isLoading &&
-              viewModel.examDate != null &&
-              viewModel.endTime != null &&
-              _timer == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _startTimer(viewModel);
-            });
-          }
-
+          // Handle post-frame callbacks for messages
           if (viewModel.successMessage.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -203,6 +194,103 @@ class _StudentTestDetailViewState extends State<StudentTestDetailView> {
               );
               viewModel.clearMessages();
             });
+          }
+
+          // Show loading indicator while data is loading
+          if (viewModel.isLoading) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF0F7FF),
+              appBar: AppBar(
+                title: Text(
+                  widget.testTitle,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                backgroundColor: AppColors.primaryColor,
+                elevation: 0,
+                centerTitle: true,
+              ),
+              body: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: AppColors.primaryColor,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Loading test...",
+                      style: TextStyle(
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          
+          // Start timer only after loading is complete
+          if (!viewModel.isLoading && 
+              viewModel.examDate != null && 
+              viewModel.endTime != null && 
+              _timer == null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _startTimer(viewModel);
+            });
+          }
+
+          // Check if questions are available
+          if (viewModel.questions.isEmpty) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF0F7FF),
+              appBar: AppBar(
+                title: Text(
+                  widget.testTitle,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                backgroundColor: AppColors.primaryColor,
+                elevation: 0,
+                centerTitle: true,
+              ),
+              body: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.orange,
+                      size: 60,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "No questions available for this test",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Please contact your instructor",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           return Scaffold(
@@ -245,284 +333,320 @@ class _StudentTestDetailViewState extends State<StudentTestDetailView> {
                   ),
               ],
             ),
-            body: viewModel.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : viewModel.questions.isEmpty
-                    ? const Center(child: Text('No questions in this test'))
-                    : _buildQuestionPage(context, viewModel),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildQuestionPage(
-      BuildContext context, TestsStudentDetailViewModel viewModel) {
-    final currentQuestion = viewModel.currentQuestion;
-    if (currentQuestion == null) {
-      return const Center(child: Text('Error loading question'));
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        key: ValueKey('question_${viewModel.currentQuestionIndex}'),
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
+            body: Column(
               children: [
-                Text(
-                  'Question ${viewModel.currentQuestionIndex + 1} of ${viewModel.questions.length}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryColor,
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        key: ValueKey(
+                            'question_${viewModel.currentQuestionIndex}'),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'Question ${viewModel.currentQuestionIndex + 1} of ${viewModel.questions.length}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                                const Spacer(),
+                                if (!viewModel.allQuestionsAnswered)
+                                  const Flexible(
+                                    child: Text(
+                                      'Please answer all questions...',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.orange,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 8),
+                            child: Text(
+                              viewModel.currentQuestion?.question ?? '',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          if (viewModel.currentQuestion?.type ==
+                                  'Upload File' &&
+                              viewModel.currentQuestion?.fileUrl != null &&
+                              viewModel.currentQuestion!.fileUrl!.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 24),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Question Attachment',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      _getFileIcon(
+                                          viewModel.currentQuestion!.fileName ??
+                                              '',
+                                          Colors.blue),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              viewModel.currentQuestion!
+                                                      .fileName ??
+                                                  'File',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 15,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            if (viewModel.currentQuestion!
+                                                    .fileSize !=
+                                                null)
+                                              Text(
+                                                _formatFileSize(viewModel
+                                                    .currentQuestion!
+                                                    .fileSize!),
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.visibility,
+                                            color: Colors.blue),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  FilePreviewView(
+                                                fileUrl: viewModel
+                                                    .currentQuestion!.fileUrl!,
+                                                firebaseFileName: viewModel
+                                                    .currentQuestion!.fileName,
+                                                fileSize: viewModel
+                                                    .currentQuestion!.fileSize,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          _buildQuestionResponseWidget(
+                              viewModel.currentQuestion!, viewModel),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const Spacer(),
-                if (!viewModel.allQuestionsAnswered)
-                  const Text(
-                    'Please answer all questions',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: Text(
-              currentQuestion.question,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          if (currentQuestion.type == 'Upload File' &&
-              currentQuestion.fileUrl != null &&
-              currentQuestion.fileUrl!.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(bottom: 24),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Question Attachment',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _getFileIcon(currentQuestion.fileName ?? '', Colors.blue),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              currentQuestion.fileName ?? 'File',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 15,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (currentQuestion.fileSize != null)
-                              Text(
-                                _formatFileSize(currentQuestion.fileSize!),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.visibility, color: Colors.blue),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FilePreviewView(
-                                fileUrl: currentQuestion.fileUrl!,
-                                firebaseFileName: currentQuestion.fileName,
-                                fileSize: currentQuestion.fileSize,
-                              ),
-                            ),
-                          );
-                        },
+                // Fixed bottom section for Submit button and question navigation
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, -1),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _buildQuestionResponseWidget(currentQuestion, viewModel),
-            ),
-          ),
-          Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: viewModel.allQuestionsAnswered &&
-                          !viewModel.isSubmitting
-                      ? () async {
-                          final success = await viewModel.submitAssignment();
-                          if (success && context.mounted) {
-                            try {
-                              final parentViewModel =
-                                  Provider.of<TestsStudentViewModel>(context,
-                                      listen: false);
-                              await parentViewModel.refreshAssignments();
-                            } catch (e) {
-                              print("Could not refresh tests list: $e");
-                            }
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Test submitted successfully!'),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-
-                            Navigator.pop(context);
-                          }
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: viewModel.allQuestionsAnswered
-                        ? AppColors.primaryColor
-                        : const Color(0xFFBDBDBD),
-                    disabledBackgroundColor: const Color(0xFFBDBDBD),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: viewModel.isSubmitting
-                      ? const CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        )
-                      : const Text(
-                          'Submit',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-              if (!viewModel.allQuestionsAnswered)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
-                  child: Center(
-                    child: Text(
-                      'Please answer all questions before submitting',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 45,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: viewModel.questions.length,
-                  itemBuilder: (context, index) {
-                    final question = viewModel.questions[index];
-                    final isActive = index == viewModel.currentQuestionIndex;
-                    final isAnswered = question.isQuestionAnswered();
-
-                    return GestureDetector(
-                      key: ValueKey(
-                          'q_indicator_${index}_${isAnswered}_${isActive}'),
-                      onTap: () {
-                        viewModel.goToQuestion(index);
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.primaryColor
-                              : (isAnswered
-                                  ? const Color(0xFFCDF1CD)
-                                  : Colors.white),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isActive
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: viewModel.allQuestionsAnswered &&
+                                  !viewModel.isSubmitting
+                              ? () async {
+                                  final success =
+                                      await viewModel.submitAssignment();
+                                  if (success && context.mounted) {
+                                    try {
+                                      final parentViewModel =
+                                          Provider.of<TestsStudentViewModel>(
+                                              context,
+                                              listen: false);
+                                      await parentViewModel
+                                          .refreshAssignments();
+                                    } catch (e) {
+                                      print("Could not refresh tests list: $e");
+                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Test submitted successfully!'),
+                                        backgroundColor: Colors.green,
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                    Navigator.pop(context);
+                                  }
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: viewModel.allQuestionsAnswered
                                 ? AppColors.primaryColor
-                                : isAnswered
-                                    ? const Color(0xFFCDF1CD)
-                                    : Colors.grey.shade300,
-                            width: 1,
+                                : const Color(0xFFBDBDBD),
+                            disabledBackgroundColor: const Color(0xFFBDBDBD),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
                           ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: Text(
-                                'Question ${index + 1}',
-                                style: TextStyle(
-                                  color: isActive ? Colors.white : Colors.black,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                          child: viewModel.isSubmitting
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                )
+                              : const Text(
+                                  'Submit',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
+                        ),
+                      ),
+                      if (!viewModel.allQuestionsAnswered)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8.0),
+                          child: Center(
+                            child: Text(
+                              'Please answer all questions before submitting',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            if (isAnswered)
-                              const Positioned(
-                                top: 1,
-                                right: 1,
-                                child: Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                  size: 18,
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 45,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: viewModel.questions.length,
+                          itemBuilder: (context, index) {
+                            final question = viewModel.questions[index];
+                            final isActive =
+                                index == viewModel.currentQuestionIndex;
+                            final isAnswered = question.isQuestionAnswered();
+
+                            return GestureDetector(
+                              key: ValueKey(
+                                  'q_indicator_${index}_${isAnswered}_$isActive'),
+                              onTap: () {
+                                viewModel.goToQuestion(index);
+                              },
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 4),
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  color: isActive
+                                      ? AppColors.primaryColor
+                                      : (isAnswered
+                                          ? const Color(0xFFCDF1CD)
+                                          : Colors.white),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isActive
+                                        ? AppColors.primaryColor
+                                        : isAnswered
+                                            ? const Color(0xFFCDF1CD)
+                                            : Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Center(
+                                      child: Text(
+                                        'Question ${index + 1}',
+                                        style: TextStyle(
+                                          color: isActive
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isAnswered)
+                                      const Positioned(
+                                        top: 1,
+                                        right: 1,
+                                        child: Icon(
+                                          Icons.check_circle,
+                                          color: Colors.green,
+                                          size: 18,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                          ],
+                            );
+                          },
                         ),
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -732,97 +856,22 @@ class _StudentTestDetailViewState extends State<StudentTestDetailView> {
 
   Widget _buildFileUpload(
       TestsStudentQuestion question, TestsStudentDetailViewModel viewModel) {
-    if (question.uploadedFileUrl != null &&
-        question.uploadedFileUrl!.isNotEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.green.withOpacity(0.1),
-              blurRadius: 4,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.green),
-                const SizedBox(width: 8),
-                const Text(
-                  'Your Uploaded Answer',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _getFileIcon(question.uploadedFileName ?? '', Colors.green),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        question.uploadedFileName ?? 'File uploaded',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.visibility, color: Colors.blue),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FilePreviewView(
-                          fileUrl: question.uploadedFileUrl!,
-                          firebaseFileName: question.uploadedFileName,
-                          fileSize: null,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    viewModel.resetFileUpload(viewModel.currentQuestionIndex);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
+    // تحقق مما إذا كان هناك ملف مرفوع بالفعل
+    bool hasUploadedFile = question.uploadedFileUrl != null &&
+        question.uploadedFileUrl!.isNotEmpty;
+
+    // إنشاء متحكم للنص
+    final TextEditingController textController =
+        TextEditingController(text: question.textAnswer ?? '');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Answer heading
         const Padding(
           padding: EdgeInsets.only(left: 8, bottom: 16),
           child: Text(
-            "Upload your answer file",
+            "Answer the question",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -830,79 +879,202 @@ class _StudentTestDetailViewState extends State<StudentTestDetailView> {
             ),
           ),
         ),
+
+        // Text input field
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: TextField(
+            controller: textController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: "Type your answer here...",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: AppColors.primaryColor),
+              ),
+            ),
+            onChanged: (value) {
+              viewModel.updateTextAnswer(viewModel.currentQuestionIndex, value);
+            },
           ),
-          child: viewModel.isUploading
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          value: viewModel.uploadProgress,
-                          strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryColor),
-                        ),
+        ),
+
+        // File upload heading
+        const Padding(
+          padding: EdgeInsets.only(left: 8, bottom: 16),
+          child: Text(
+            "Or upload a file",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ),
+
+        // عرض الملف المرفوع إذا وجد
+        if (hasUploadedFile)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.1),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text(
+                      'Uploaded File',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Uploading... ${(viewModel.uploadProgress * 100).toStringAsFixed(0)}%',
-                        style: const TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _getFileIcon(question.uploadedFileName ?? '', Colors.green),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            question.uploadedFileName ?? 'File uploaded',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                )
-              : InkWell(
-                  onTap: () async {
-                    await _pickFile(context, viewModel);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.visibility, color: Colors.blue),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FilePreviewView(
+                              fileUrl: question.uploadedFileUrl!,
+                              firebaseFileName: question.uploadedFileName,
+                              fileSize: null,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        viewModel
+                            .resetFileUpload(viewModel.currentQuestionIndex);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )
+        else
+          // واجهة رفع الملف
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 10),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: viewModel.isUploading
+                ? Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade200,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.cloud_upload,
-                            color: Colors.white,
-                            size: 30,
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            value: viewModel.uploadProgress,
+                            strokeWidth: 3,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.primaryColor),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "Tap to upload file",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
-                          "PDF, JPG, PNG, or document files",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
+                          'Uploading... ${(viewModel.uploadProgress * 100).toStringAsFixed(0)}%',
+                          style: const TextStyle(fontSize: 14),
                         ),
                       ],
                     ),
+                  )
+                : InkWell(
+                    onTap: () async {
+                      await _pickFile(context, viewModel);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade200,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.cloud_upload,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Click to upload file",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "PDF, JPG, PNG, or document files",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-        ),
+          ),
       ],
     );
   }

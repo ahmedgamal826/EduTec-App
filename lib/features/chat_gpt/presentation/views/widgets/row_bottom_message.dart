@@ -42,7 +42,7 @@ class _RowBottomMessageState extends State<RowBottomMessage> {
                 _formattedDateAndTimeServices.formatDateTime(widget.timeSent),
                 style: TextStyle(
                   color: profileProvider.isDarkMode
-                      ? Color.fromARGB(255, 172, 164, 164)
+                      ? const Color.fromARGB(255, 172, 164, 164)
                       : const Color.fromARGB(255, 250, 233, 233),
                   fontWeight: FontWeight.bold,
                   fontStyle: FontStyle.italic,

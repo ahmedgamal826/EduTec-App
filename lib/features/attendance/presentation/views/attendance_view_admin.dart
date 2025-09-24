@@ -11,10 +11,10 @@ class AttendanceScreenAdmin extends StatelessWidget {
   final String courseName;
 
   const AttendanceScreenAdmin({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.courseName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class AttendanceScreenAdmin extends StatelessWidget {
               backgroundColor: AppColors.primaryColor,
               elevation: 0,
               title: Text(
-                'Admin ${courseName} Attendance',
+                'Admin $courseName Attendance',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

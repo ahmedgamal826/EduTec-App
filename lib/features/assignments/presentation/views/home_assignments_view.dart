@@ -14,8 +14,7 @@ import 'package:provider/provider.dart';
 class HomeAssignmentsView extends StatelessWidget {
   final String courseId;
 
-  const HomeAssignmentsView({Key? key, required this.courseId})
-      : super(key: key);
+  const HomeAssignmentsView({super.key, required this.courseId});
 
   void _deleteAssignment(
       BuildContext context, HomeAssignmentsViewModel viewModel, int index) {
@@ -442,7 +441,7 @@ class HomeAssignmentsView extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Cancel',
+              child: const Text('Cancel',
                   style: TextStyle(color: AppColors.primaryColor)),
             ),
             ElevatedButton(
@@ -593,7 +592,7 @@ class HomeAssignmentsView extends StatelessWidget {
                                 final assignment = viewModel.assignments[index];
                                 return AssignmentListItem(
                                   assignment: assignment,
-                                  animation: AlwaysStoppedAnimation(1.0),
+                                  animation: const AlwaysStoppedAnimation(1.0),
                                   onDelete: () {
                                     viewModel.selectAssignment(index);
                                     _deleteAssignment(

@@ -7,7 +7,7 @@ class UserTextField extends StatelessWidget {
   final IconData icon;
   final bool enabled;
 
-  UserTextField({
+  const UserTextField({super.key, 
     required this.controller,
     required this.label,
     required this.icon,
@@ -33,7 +33,7 @@ class UserTextField extends StatelessWidget {
               color: AppColors.primaryColor,
             ),
             labelText: label,
-            labelStyle: TextStyle(color: Colors.black),
+            labelStyle: const TextStyle(color: Colors.black),
             border: InputBorder.none,
             fillColor: Colors.black12,
           ),

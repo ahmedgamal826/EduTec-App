@@ -334,33 +334,6 @@ class TestsListItemAdminState extends State<TestsListItemAdmin> {
                               ),
                               Row(
                                 children: [
-                                  if (!_expanded)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: isExpired
-                                            ? Colors.red.withOpacity(0.9)
-                                            : isActive
-                                                ? Colors.green.withOpacity(0.9)
-                                                : Colors.orange
-                                                    .withOpacity(0.9),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        isExpired
-                                            ? 'Expired'
-                                            : isActive
-                                                ? 'Active'
-                                                : 'Scheduled',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ),
-                                  const SizedBox(width: 8),
                                   InkWell(
                                     onTap: widget.onTap,
                                     borderRadius: BorderRadius.circular(20),
@@ -664,7 +637,7 @@ class TestsListItemAdminState extends State<TestsListItemAdmin> {
                                                   ),
                                                   const SizedBox(height: 3),
                                                   Text(
-                                                    '${startTimeFormatted} - ${endTimeFormatted}',
+                                                    '$startTimeFormatted - $endTimeFormatted',
                                                     style: TextStyle(
                                                       fontSize: 14,
                                                       fontWeight:

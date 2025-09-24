@@ -45,6 +45,7 @@ class StudentQuestion {
   int? selectedOption;
   String? uploadedFileUrl;
   String? uploadedFileName;
+  String? textAnswer; // إضافة حقل للإجابة النصية
   bool? isAnswered;
   bool? isCorrect;
 
@@ -61,6 +62,7 @@ class StudentQuestion {
     this.selectedOption,
     this.uploadedFileUrl,
     this.uploadedFileName,
+    this.textAnswer, // إضافة حقل للإجابة النصية
     this.isAnswered = false,
     this.isCorrect,
   });
@@ -85,7 +87,9 @@ class StudentQuestion {
         type == 'TrueFalse') {
       return selectedOption != null;
     } else if (type == 'file' || type == 'Upload File') {
-      return uploadedFileUrl != null && uploadedFileUrl!.isNotEmpty;
+      // اعتبار السؤال مجاب عليه إذا تم رفع ملف أو إدخال نص
+      return (uploadedFileUrl != null && uploadedFileUrl!.isNotEmpty) || 
+             (textAnswer != null && textAnswer!.isNotEmpty);
     }
     return false;
   }

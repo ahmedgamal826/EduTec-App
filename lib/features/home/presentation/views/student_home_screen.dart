@@ -1,4 +1,5 @@
-import 'package:attendance_app/core/widgets/subject_screen.dart';
+import 'package:attendance_app/core/provider/app_provider.dart';
+import 'package:attendance_app/core/views/subject_screen.dart';
 import 'package:attendance_app/features/home/presentation/manager/provider/dark_mode_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:attendance_app/core/utils/app_colors.dart';
@@ -7,9 +8,11 @@ import 'package:attendance_app/features/home/presentation/views/widgets/join_tea
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'dart:async';
 
 class StudentHomeScreen extends StatefulWidget {
-  const StudentHomeScreen({Key? key}) : super(key: key);
+  const StudentHomeScreen({super.key});
 
   @override
   State<StudentHomeScreen> createState() => _StudentHomeScreenState();
@@ -18,6 +21,7 @@ class StudentHomeScreen extends StatefulWidget {
 class _StudentHomeScreenState extends State<StudentHomeScreen> {
   TextEditingController searchController = TextEditingController();
   String? studentUid;
+  Timer? _notificationTimer;
 
   @override
   void initState() {
@@ -26,6 +30,32 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     searchController.addListener(() {
       setState(() {});
     });
+    
+    // تحديث الإشعارات عند فتح الشاشة
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppProvider>(context, listen: false).fetchNotifications();
+      _startNotificationTimer();
+    });
+  }
+
+  // بدء مؤقت لتحديث الإشعارات بشكل دوري
+  void _startNotificationTimer() {
+    // إلغاء المؤقت القديم إذا كان موجودًا
+    _notificationTimer?.cancel();
+    
+    // إنشاء مؤقت جديد للتحقق من الإشعارات كل 2 ثوانٍ
+    _notificationTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) {
+        Provider.of<AppProvider>(context, listen: false).fetchNotifications(silent: true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationTimer?.cancel();
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _getStudentUid() async {
@@ -58,10 +88,38 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Provider.of<DarkModeProvider>(context).isDarkMode;
+    final appProvider = Provider.of<AppProvider>(context);
+    
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : AppColors.whiteColor,
       drawer: const StudentDrawer(),
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
+              if (appProvider.unreadNotificationsCount > 0)
+                Positioned(
+                  top: 10,
+                  right: 12,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text(
@@ -270,6 +328,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                     courseData['semester'] ?? 'Unknown Year';
                                 String date =
                                     courseData['date'] ?? 'Unknown Date';
+                                String courseCode = courseData['courseCode'] ?? '';
 
                                 return GestureDetector(
                                   onTap: () {
@@ -369,6 +428,14 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                                 ),
                                               ),
                                               Positioned(
+                                                top: 8,
+                                                right: 8,
+                                                child: IconButton(
+                                                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                                                  onPressed: () => _showBottomSheet(context, courseId, courseName, courseCode),
+                                                ),
+                                              ),
+                                              Positioned(
                                                 bottom: 8,
                                                 left: 12,
                                                 right: 20,
@@ -403,5 +470,90 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         ),
       ),
     );
+  }
+
+  void _showBottomSheet(BuildContext context, String courseId, String courseName, String courseCode) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          height: 100,
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text("Unregister Course"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteDialog(courseId, courseName, courseCode);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteDialog(String courseId, String courseName, String courseCode) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.warning,
+      animType: AnimType.bottomSlide,
+      title: 'Unregister Course',
+      desc: 'Are you sure you want to unregister from $courseName?',
+      btnCancelOnPress: () {},
+      btnOkOnPress: () async {
+        try {
+          if (studentUid != null) {
+            // Get current user document
+            DocumentSnapshot userDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(studentUid)
+                .get();
+            
+            if (userDoc.exists) {
+              // Get enrolled courses
+              List<dynamic> enrolledCourses = userDoc.get('enrolledCourses') ?? [];
+              
+              // Remove the course code from enrolled courses
+              enrolledCourses.remove(courseCode);
+              
+              // Update the user document
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(studentUid)
+                  .update({
+                'enrolledCourses': enrolledCourses,
+              });
+
+              // Show success message
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Course unregistered successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            }
+          }
+        } catch (e) {
+          // Show error message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error unregistering course: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      },
+    ).show();
   }
 }

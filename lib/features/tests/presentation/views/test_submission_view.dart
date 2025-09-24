@@ -15,13 +15,13 @@ class TestSubmissionView extends StatelessWidget {
   final String currentUserName; // Parameter to filter submissions
 
   const TestSubmissionView({
-    Key? key,
+    super.key,
     required this.adminId,
     required this.testId,
     required this.testTitle,
     required this.courseName,
     required this.currentUserName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,7 @@ class TestSubmissionView extends StatelessWidget {
                   .toList(); // Show only current user's submissions for students
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF0F7FF),
+            backgroundColor: Colors.white,
             appBar: AppBar(
               title: Text(
                 'Submissions for $testTitle',
@@ -225,6 +225,7 @@ class TestSubmissionView extends StatelessWidget {
                               fontSize: 16,
                             ),
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

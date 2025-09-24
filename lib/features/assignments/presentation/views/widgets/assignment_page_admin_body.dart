@@ -8,8 +8,7 @@ import 'assignment_list_item.dart';
 class AssignmentPageAdminBody extends StatefulWidget {
   final String courseId;
 
-  const AssignmentPageAdminBody({Key? key, required this.courseId})
-      : super(key: key);
+  const AssignmentPageAdminBody({super.key, required this.courseId});
 
   @override
   State<AssignmentPageAdminBody> createState() =>

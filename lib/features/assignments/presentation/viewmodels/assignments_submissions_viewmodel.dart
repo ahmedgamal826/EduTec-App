@@ -18,7 +18,7 @@ class AssignmentSubmissionsViewModel with ChangeNotifier {
   // Add maps to store question data
   Map<String, dynamic> _questionData = {};
   Map<String, List<dynamic>> _optionsData = {};
-  Map<String, int> _correctAnswers = {};
+  final Map<String, int> _correctAnswers = {};
 
   AssignmentSubmissionsViewModel({
     required this.adminId,
@@ -710,11 +710,13 @@ class AssignmentSubmissionsViewModel with ChangeNotifier {
           // Handle file upload questions
           String? fileUrl;
           String? fileName;
+          String? textAnswer;
           print('Debug - Question Type for $questionId: "$questionType"');
           if (questionType == 'Upload File') {
             fileUrl = qData['fileUrl'] as String?;
             fileName = qData['fileName'] as String?;
-            print('Debug - Extracted fileUrl: $fileUrl, fileName: $fileName');
+            textAnswer = qData['textAnswer'] as String?;
+            print('Debug - Extracted fileUrl: $fileUrl, fileName: $fileName, textAnswer: $textAnswer');
           }
 
           // Get text-based answers for display
@@ -730,6 +732,7 @@ class AssignmentSubmissionsViewModel with ChangeNotifier {
             correctAnswerText: correctAnswerText,
             fileUrl: fileUrl,
             fileName: fileName,
+            textAnswer: textAnswer,
             isCorrect: isCorrect,
             score: score,
             teacherComment: qData['teacherComment'] as String?,
@@ -779,7 +782,7 @@ class AssignmentSubmissionsViewModel with ChangeNotifier {
                   await _firestore.collection('users').doc(studentId).get();
 
               final userData = userDoc.exists
-                  ? userDoc.data() as Map<String, dynamic>? ?? {}
+                  ? userDoc.data() ?? {}
                   : {};
               final studentName =
                   userData['name'] as String? ?? 'Unknown Student';

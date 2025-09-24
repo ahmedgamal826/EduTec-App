@@ -9,13 +9,13 @@ class TestsTestsQuestionCard extends StatelessWidget {
   final String role;
 
   const TestsTestsQuestionCard({
-    Key? key,
+    super.key,
     required this.index,
     required this.isSelected,
     required this.onTap,
     this.onDelete,
     required this.role,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

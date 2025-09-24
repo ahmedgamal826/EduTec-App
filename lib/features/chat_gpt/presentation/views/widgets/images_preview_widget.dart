@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ImagesPreviewWidget extends StatelessWidget {
-  ImagesPreviewWidget({this.message});
+  const ImagesPreviewWidget({super.key, this.message});
 
   final Message? message;
 

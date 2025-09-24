@@ -10,10 +10,10 @@ class PdfMaterialViewer extends StatefulWidget {
   final String fileName;
 
   const PdfMaterialViewer({
-    Key? key,
+    super.key,
     required this.fileUrl,
     required this.fileName,
-  }) : super(key: key);
+  });
 
   @override
   _PdfMaterialViewerState createState() => _PdfMaterialViewerState();

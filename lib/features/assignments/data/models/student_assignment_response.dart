@@ -113,7 +113,6 @@
 //   }
 // }
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class StudentResponse {
@@ -127,6 +126,7 @@ class StudentResponse {
   final String? teacherComment; // Comentario del docente (opcional)
   final String? selectedAnswerText;
   final String? correctAnswerText;
+  final String? textAnswer; // إجابة نصية للسؤال
 
   StudentResponse({
     required this.questionId,
@@ -139,6 +139,7 @@ class StudentResponse {
     this.teacherComment,
     this.selectedAnswerText,
     this.correctAnswerText,
+    this.textAnswer, // إضافة حقل للإجابة النصية
   });
 
   // Add method to update isCorrect field
@@ -158,6 +159,7 @@ class StudentResponse {
       'teacherComment': teacherComment,
       'selectedAnswerText': selectedAnswerText,
       'correctAnswerText': correctAnswerText,
+      'textAnswer': textAnswer, // إضافة حقل للإجابة النصية
     };
   }
 
@@ -173,6 +175,7 @@ class StudentResponse {
       teacherComment: map['teacherComment'],
       selectedAnswerText: map['selectedAnswerText'],
       correctAnswerText: map['correctAnswerText'],
+      textAnswer: map['textAnswer'], // إضافة حقل للإجابة النصية
     );
   }
 }

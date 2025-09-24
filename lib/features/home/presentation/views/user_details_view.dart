@@ -731,14 +731,14 @@ class UserDetailsScreen extends StatefulWidget {
   final String role;
 
   const UserDetailsScreen({
-    Key? key,
+    super.key,
     required this.userId,
     required this.name,
     required this.email,
     required this.image,
     required this.password,
     required this.role,
-  }) : super(key: key);
+  });
 
   @override
   _UserDetailsScreenState createState() => _UserDetailsScreenState();

@@ -20,7 +20,7 @@ class FirebaseNotificationViewTest extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
+          const Center(
             child: Text('Push Notifications with FCM'),
           ),
           Center(
@@ -36,7 +36,7 @@ class FirebaseNotificationViewTest extends StatelessWidget {
                       "id": "120",
                     });
               },
-              child: Text('Send Notification'),
+              child: const Text('Send Notification'),
             ),
           )
         ],

@@ -1,3 +1,4 @@
+import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class InfoCard extends StatefulWidget {
@@ -7,6 +8,7 @@ class InfoCard extends StatefulWidget {
   final int delay;
 
   const InfoCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.value,
@@ -67,14 +69,14 @@ class _InfoCardState extends State<InfoCard>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          color: Colors.white.withOpacity(0.9),
+          color: AppColors.primaryColor,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             child: Row(
               children: [
                 Icon(
                   widget.icon,
-                  color: Colors.blueAccent,
+                  color: Colors.white,
                   size: 30,
                 ),
                 const SizedBox(width: 15),
@@ -87,7 +89,7 @@ class _InfoCardState extends State<InfoCard>
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 5),
@@ -95,7 +97,7 @@ class _InfoCardState extends State<InfoCard>
                         widget.value,
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          color: Colors.white,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),

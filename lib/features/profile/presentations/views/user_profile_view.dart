@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // For formatting dates
 
 class UserProfileView extends StatelessWidget {
-  const UserProfileView({Key? key}) : super(key: key);
+  const UserProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +66,9 @@ class UserProfileView extends StatelessWidget {
           body: Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(color: AppColors.primaryColor),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+            ),
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
@@ -84,14 +86,14 @@ class UserProfileView extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                              offset: Offset(2, 2),
-                            ),
-                          ],
+                          color: Colors.black,
+                          // shadows: [
+                          //   Shadow(
+                          //     color: Colors.black26,
+                          //     blurRadius: 10,
+                          //     offset: Offset(2, 2),
+                          //   ),
+                          // ],
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -101,7 +103,8 @@ class UserProfileView extends StatelessWidget {
                         role,
                         style: const TextStyle(
                           fontSize: 18,
-                          color: Colors.white70,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -155,6 +158,7 @@ class UserProfileView extends StatelessWidget {
                           style: TextStyle(color: Colors.white),
                         ),
                         style: OutlinedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
                           side: const BorderSide(color: Colors.white, width: 2),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,

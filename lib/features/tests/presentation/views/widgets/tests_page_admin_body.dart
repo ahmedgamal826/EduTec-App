@@ -8,8 +8,7 @@ import 'tests_list_item_admin.dart';
 class TestsTestsPageAdminBody extends StatefulWidget {
   final String courseId;
 
-  const TestsTestsPageAdminBody({Key? key, required this.courseId})
-      : super(key: key);
+  const TestsTestsPageAdminBody({super.key, required this.courseId});
 
   @override
   State<TestsTestsPageAdminBody> createState() =>

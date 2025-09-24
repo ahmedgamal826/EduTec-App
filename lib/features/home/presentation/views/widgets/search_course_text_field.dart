@@ -6,10 +6,10 @@ class SearchCourseTextField extends StatelessWidget {
   final void Function(String)? onChanged;
 
   const SearchCourseTextField({
-    Key? key,
+    super.key,
     required this.controller,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +17,13 @@ class SearchCourseTextField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.grey.withOpacity(0.3),
+        //     blurRadius: 6,
+        //     offset: const Offset(0, 3),
+        //   ),
+        // ],
       ),
       child: TextField(
         cursorColor: AppColors.primaryColor,
@@ -31,19 +31,22 @@ class SearchCourseTextField extends StatelessWidget {
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: "Search for courses...",
+          hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           border: InputBorder.none,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.grey, width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: AppColors.primaryColor,
-              width: 2,
-            ),
-          ),
+          // enabledBorder: OutlineInputBorder(
+          //   borderRadius: BorderRadius.circular(12),
+          //   borderSide: const BorderSide(color: Colors.grey, width: 1),
+          // ),
+          // focusedBorder: OutlineInputBorder(
+          //   borderRadius: BorderRadius.circular(12),
+          //   borderSide: const BorderSide(
+          //     color: AppColors.primaryColor,
+          //     width: 2,
+          //   ),
+          // ),
+          filled: true, // Enable background fill
+          fillColor: Colors.grey[200], // Set grey backg
           contentPadding:
               const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
         ),

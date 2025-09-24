@@ -153,7 +153,7 @@ import 'package:provider/provider.dart';
 class AnalysisViewAdmin extends StatelessWidget {
   final String courseId; // تمرير courseId كمعامل
 
-  const AnalysisViewAdmin({Key? key, required this.courseId}) : super(key: key);
+  const AnalysisViewAdmin({super.key, required this.courseId});
 
   @override
   Widget build(BuildContext context) {

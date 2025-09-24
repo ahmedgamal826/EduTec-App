@@ -7,10 +7,10 @@ class AttendanceScreenStudent extends StatelessWidget {
   final String courseName;
 
   const AttendanceScreenStudent({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.courseName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +33,18 @@ class AttendanceScreenStudent extends StatelessWidget {
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.blue[100]!,
-              Colors.white,
-            ],
-          ),
-        ),
+        // decoration: BoxDecoration(
+        //   gradient: LinearGradient(
+        //     begin: Alignment.topCenter,
+        //     end: Alignment.bottomCenter,
+        //     colors: [
+        //       Colors.blue[100]!,
+        //       Colors.white,
+        //     ],
+        //   ),
+        // ),
+        color: Colors.white,
+
         child: AttendanceScreenBodyView(courseId: courseId),
       ),
     );

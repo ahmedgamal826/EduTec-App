@@ -103,11 +103,20 @@ class AddQuestionViewModel extends ChangeNotifier {
       );
 
       if (result != null) {
-        _selectedFile = File(result.files.single.path!);
-        _selectedFileName = path.basename(_selectedFile!.path);
+        // Manejar la ruta del archivo correctamente para evitar problemas de codificación
+        String filePath = result.files.single.path!;
+        
+        // Convertir ruta a formato compatible con URI
+        if (Platform.isWindows) {
+          // En Windows, reemplazar barras invertidas con barras normales
+          filePath = filePath.replaceAll('\\', '/');
+        }
+        
+        _selectedFile = File(filePath);
+        _selectedFileName = path.basename(filePath);
         _selectedFileSize = await _selectedFile!.length();
         _selectedFileType =
-            lookupMimeType(_selectedFile!.path) ?? 'application/octet-stream';
+            lookupMimeType(filePath) ?? 'application/octet-stream';
 
         _uploadStatus = 'File selected successfully';
         notifyListeners();
@@ -131,8 +140,18 @@ class AddQuestionViewModel extends ChangeNotifier {
       _uploadStatus = 'Uploading...';
       notifyListeners();
 
-      final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${path.basename(_selectedFile!.path)}';
+      // Sanitizar el nombre del archivo para evitar problemas de codificación
+      String originalFileName = path.basename(_selectedFile!.path);
+      
+      // Reemplazar caracteres problemáticos en el nombre del archivo
+      String sanitizedFileName = originalFileName
+          .replaceAll('%', '_percent_')
+          .replaceAll('&', '_and_')
+          .replaceAll('+', '_plus_')
+          .replaceAll(' ', '_')
+          .replaceAll('#', '_hash_');
+      
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_$sanitizedFileName';
       final destination = 'assignment_files/$fileName';
 
       final ref = FirebaseStorage.instance.ref(destination);
@@ -160,6 +179,7 @@ class AddQuestionViewModel extends ChangeNotifier {
       _uploadStatus = 'Error uploading file: $e';
       _isUploading = false;
       notifyListeners();
+      print('Error detallado al subir archivo: $e');
     }
   }
 
@@ -324,16 +344,34 @@ class AddQuestionViewModel extends ChangeNotifier {
       if (cleanFileName.isEmpty || cleanFileName.startsWith('http')) {
         if (_uploadedFileUrl != null) {
           final url = _uploadedFileUrl!;
-          RegExp timestampFilenameRegex = RegExp(r'\/(\d+_[^?]+)');
-          var timestampMatches = timestampFilenameRegex.firstMatch(url);
-          if (timestampMatches != null && timestampMatches.group(1) != null) {
-            cleanFileName = Uri.decodeFull(timestampMatches.group(1)!);
-          } else {
-            cleanFileName = path.basename(url.split('?').first);
+          try {
+            RegExp timestampFilenameRegex = RegExp(r'\/(\d+_[^?]+)');
+            var timestampMatches = timestampFilenameRegex.firstMatch(url);
+            if (timestampMatches != null && timestampMatches.group(1) != null) {
+              String extracted = timestampMatches.group(1)!;
+              try {
+                cleanFileName = Uri.decodeFull(extracted);
+              } catch (e) {
+                cleanFileName = extracted;
+              }
+            } else {
+              String basePath = url.split('?').first;
+              cleanFileName = path.basename(basePath);
+            }
+          } catch (e) {
+            print('Error extracting filename from URL: $e');
+            cleanFileName = 'uploaded_file';
           }
         }
         if (cleanFileName.isEmpty) cleanFileName = 'uploaded_file';
       }
+
+      // Sanitizar el nombre del archivo para evitar problemas
+      cleanFileName = cleanFileName
+          .replaceAll('%', '_percent_')
+          .replaceAll('&', '_and_')
+          .replaceAll('+', '_plus_')
+          .replaceAll('#', '_hash_');
 
       return QuestionModel(
         type: 'Upload File',

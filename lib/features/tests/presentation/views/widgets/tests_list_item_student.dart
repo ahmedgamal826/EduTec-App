@@ -10,11 +10,11 @@ class TestsListItemStudent extends StatefulWidget {
   final VoidCallback onViewSubmissions;
 
   const TestsListItemStudent({
-    Key? key,
+    super.key,
     required this.test,
     required this.onTap,
     required this.onViewSubmissions,
-  }) : super(key: key);
+  });
 
   @override
   State<TestsListItemStudent> createState() => TestsListItemStudentState();
@@ -322,16 +322,16 @@ class TestsListItemStudentState extends State<TestsListItemStudent> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: widget.test.isCompleted
-                                  ? Row(
+                                  ? const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.check_circle,
                                           color: Colors.white,
                                           size: 16,
                                         ),
-                                        const SizedBox(width: 4),
-                                        const Text(
+                                        SizedBox(width: 4),
+                                        Text(
                                           'Completed',
                                           style: TextStyle(
                                             color: Colors.white,
@@ -751,7 +751,7 @@ class TestsListItemStudentState extends State<TestsListItemStudent> {
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
-                                        child: Row(
+                                        child: const Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
@@ -760,7 +760,7 @@ class TestsListItemStudentState extends State<TestsListItemStudent> {
                                               size: 18,
                                               color: AppColors.primaryColor,
                                             ),
-                                            const SizedBox(width: 8),
+                                            SizedBox(width: 8),
                                             Text(
                                               'Open Test',
                                               style: TextStyle(

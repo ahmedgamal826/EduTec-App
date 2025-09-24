@@ -5,10 +5,10 @@ class UploadFileButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   const UploadFileButton({
-    Key? key,
+    super.key,
     required this.isUploading,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

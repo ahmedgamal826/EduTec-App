@@ -529,9 +529,9 @@ class MaterialItemStudent extends StatelessWidget {
   final MaterialModel material;
 
   const MaterialItemStudent({
-    Key? key,
+    super.key,
     required this.material,
-  }) : super(key: key);
+  });
 
   IconData _getIconForType(String type) {
     switch (type.toLowerCase()) {
@@ -598,21 +598,21 @@ class MaterialItemStudent extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white,
-                  Colors.blue[50]!,
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              // gradient: LinearGradient(
+              //   begin: Alignment.topLeft,
+              //   end: Alignment.bottomRight,
+              //   colors: [
+              //     Colors.white,
+              //     Colors.blue[50]!,
+              //   ],
+              // ),
+              // boxShadow: [
+              //   BoxShadow(
+              //     color: Colors.blue.withOpacity(0.2),
+              //     blurRadius: 10,
+              //     offset: const Offset(0, 4),
+              //   ),
+              // ],
             ),
             padding: const EdgeInsets.all(16),
             child: Column(

@@ -7,7 +7,7 @@ import '../file_preview_view.dart';
 class QuestionContent extends StatelessWidget {
   final QuestionModel? question;
 
-  const QuestionContent({Key? key, this.question}) : super(key: key);
+  const QuestionContent({super.key, this.question});
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,7 @@ class QuestionContent extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ] else if (question!.type == 'Upload File') ...[
             _buildFileDisplay(context),
           ],
@@ -192,7 +192,7 @@ class QuestionContent extends StatelessWidget {
                         size: 28,
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width - 100,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

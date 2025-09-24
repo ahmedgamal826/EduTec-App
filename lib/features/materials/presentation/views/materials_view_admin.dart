@@ -9,10 +9,10 @@ class MaterialsAdminScreen extends StatelessWidget {
   final int lectureNumber;
 
   const MaterialsAdminScreen({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.lectureNumber,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +34,11 @@ class MaterialsAdminScreen extends StatelessWidget {
           elevation: 4,
         ),
         body: Container(
-          color: const Color(0xFFE3F2FD),
+          color: Colors.white,
           child: const MaterialsAdminBodyView(),
         ),
         floatingActionButton: Builder(builder: (context) {
-          final materialCubit =
-              context.read<MaterialCubit>(); // احصل على الـ Cubit
+          final materialCubit = context.read<MaterialCubit>();
           return FloatingActionButton(
             onPressed: () {
               _addNewFile(context, materialCubit);

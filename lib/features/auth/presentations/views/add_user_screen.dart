@@ -202,7 +202,6 @@ import 'package:attendance_app/features/auth/presentations/views/widget/auth_fun
 import 'package:attendance_app/features/auth/presentations/views/widget/custom_button.dart';
 import 'package:attendance_app/features/auth/presentations/views/widget/custom_text_filed.dart';
 import 'package:attendance_app/features/home/presentation/manager/provider/dark_mode_provider.dart';
-import 'package:attendance_app/features/assistant/presentation/views/assistant_home_view.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -314,10 +313,11 @@ class _AddUserScreenState extends State<AddUserScreen> {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: isDarkMode ? Colors.black : AppColors.primaryColor,
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
         appBar: AppBar(
-          iconTheme: const IconThemeData(color: Colors.white),
-          backgroundColor: isDarkMode ? Colors.black : AppColors.primaryColor,
+          iconTheme: IconThemeData(color: isDarkMode ? Colors.white : AppColors.primaryColor),
+          backgroundColor: isDarkMode ? Colors.black : Colors.white,
+          elevation: 0,
         ),
         body: Stack(
           children: [
@@ -331,16 +331,14 @@ class _AddUserScreenState extends State<AddUserScreen> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppColors.primaryColor.withOpacity(0.1),
                           backgroundImage:
                               _image != null ? FileImage(_image!) : null,
                           child: _image == null
                               ? Icon(
                                   Icons.person,
                                   size: 50,
-                                  color: isDarkMode
-                                      ? Colors.black
-                                      : AppColors.primaryColor,
+                                  color: AppColors.primaryColor,
                                 )
                               : null,
                         ),
@@ -352,7 +350,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Colors.blue,
+                                color: AppColors.primaryColor,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
@@ -374,155 +372,162 @@ class _AddUserScreenState extends State<AddUserScreen> {
                     ),
                   ),
 
-                  const Center(
+                  Center(
                     child: Text(
                       'Add User',
-                      style: TextStyle(fontSize: 40, color: Colors.white),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20),
-                    child: Text(
-                      'Username',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 40, 
+                        color: isDarkMode ? Colors.white : AppColors.primaryColor,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 30),
+                  
+                  // Name field
                   CustomTextFiled(
                     hintText: 'Enter your Name',
                     controller: nameController,
                     validatorMessage: 'Username is required',
                   ),
+                  
                   const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20),
-                    child: Text(
-                      'Email',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  
+                  // Email field
                   CustomTextFiled(
                     hintText: 'Enter your Email',
                     controller: emailController,
                     validatorMessage: 'Email is required',
                   ),
+                  
                   const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20),
-                    child: Text(
-                      'Password',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  
+                  // Password field
                   CustomTextFiled(
                     hintText: 'Enter your Password',
                     controller: passwordController,
                     validatorMessage: 'Password is required',
                   ),
-                  const SizedBox(height: 20),
+                  
+                  const SizedBox(height: 30),
 
-                  // const Padding(
-                  //   padding: EdgeInsets.only(left: 20),
-                  //   child: Text(
-                  //     'Confirm Password',
-                  //     style: TextStyle(
-                  //       fontSize: 22,
-                  //       fontWeight: FontWeight.bold,
-                  //       color: Colors.white,
-                  //     ),
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 10),
-                  // CustomTextFiled(
-                  //   hintText: 'Enter confirm Password',
-                  //   controller: confirmPasswordController,
-                  //   validatorMessage: 'Confirm Password is required',
-                  // ),
-                  const SizedBox(height: 7),
-
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20),
+                  // Select Role
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
                       'Select Role',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.white : AppColors.primaryColor,
                       ),
                     ),
                   ),
-                  Row(
+                  const SizedBox(height: 10),
+                  
+                  // Role selection
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
                     children: [
                       Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text(
-                            'Student',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
+                          child: Row(
+                            children: [
+                              Radio<String>(
                           value: 'student',
                           groupValue: _role,
-                          activeColor: Colors.white,
+                                activeColor: AppColors.primaryColor,
                           onChanged: (value) {
                             setState(() {
                               _role = value!;
                             });
                           },
                         ),
-                      ),
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text(
-                            'Admin',
+                              Text(
+                                'Student',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                                  color: isDarkMode ? Colors.white : AppColors.primaryColor,
+                                  fontWeight: _role == 'student' ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                             ),
                           ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Radio<String>(
                           value: 'admin',
                           groupValue: _role,
-                          activeColor: Colors.white,
+                                activeColor: AppColors.primaryColor,
                           onChanged: (value) {
                             setState(() {
                               _role = value!;
                             });
                           },
+                              ),
+                              Text(
+                                'Admin',
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.white : AppColors.primaryColor,
+                                  fontWeight: _role == 'admin' ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-
-                  CustomButton(
-                    buttonText: 'Add',
-                    onPressed: handleAddUser,
                   ),
+                  
+                  const SizedBox(height: 40),
+
+                  // Add button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 3,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                      ),
+                    onPressed: handleAddUser,
+                      child: Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
                   const SizedBox(height: 20),
                 ],
               ),
             ),
             if (isLoading)
-              const Center(
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: Center(
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                    color: AppColors.primaryColor,
+                  ),
                 ),
               ),
           ],
@@ -531,3 +536,4 @@ class _AddUserScreenState extends State<AddUserScreen> {
     );
   }
 }
+

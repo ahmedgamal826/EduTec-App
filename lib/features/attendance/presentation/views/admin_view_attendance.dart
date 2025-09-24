@@ -8,7 +8,7 @@ import 'package:attendance_app/features/attendance/presentation/views/update_att
 class AdminViewAttendance extends StatefulWidget {
   final DateTime date;
 
-  AdminViewAttendance({required this.date});
+  const AdminViewAttendance({super.key, required this.date});
 
   @override
   _AdminViewAttendanceState createState() => _AdminViewAttendanceState();

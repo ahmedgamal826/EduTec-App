@@ -1,3 +1,4 @@
+import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/features/analysis/models/student_score_admin.dart';
 import 'package:flutter/material.dart';
 
@@ -8,12 +9,12 @@ class tBarChartAdmin extends StatefulWidget {
   final bool isMediumScreen;
 
   const tBarChartAdmin({
-    Key? key,
+    super.key,
     required this.studentScores,
     required this.animationValue,
     this.isSmallScreen = false,
     this.isMediumScreen = false,
-  }) : super(key: key);
+  });
 
   @override
   State<tBarChartAdmin> createState() => _tBarChartAdminState();
@@ -50,12 +51,15 @@ class _tBarChartAdminState extends State<tBarChartAdmin> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Best 5 Students\' Analysis',
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: titleFontSize,
-              fontWeight: FontWeight.bold,
+          Center(
+            child: Text(
+              'Best 5 Students\' Analysis',
+              style: TextStyle(
+                color: Colors.blue,
+                fontFamily: 'Poppins',
+                fontSize: titleFontSize,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           SizedBox(height: widget.isSmallScreen ? 10 : 20),
@@ -153,18 +157,44 @@ class _tBarChartAdminState extends State<tBarChartAdmin> {
                                           widget.studentScores.length > index
                                               ? widget.studentScores[index]
                                               : StudentScoreAdmin(
-                                                  'Stu${index + 1}', 0);
+                                                  'Student ${index + 1}', 0);
+
+                                      // A real student must have a non-zero score (at least 5% to be considered)
+                                      bool isRealStudent =
+                                          widget.studentScores.length > index &&
+                                              score.score > 5.0;
+
+                                      // For debugging
+                                      if (widget.studentScores.length > index) {
+                                        print(
+                                            "Bar $index: ${score.name} - Total: ${score.score.toStringAsFixed(1)}%, Attendance: ${score.attendanceScore.toStringAsFixed(1)}%, Assignments: ${score.assignmentScore.toStringAsFixed(1)}%, Tests: ${score.testScore.toStringAsFixed(1)}%");
+                                      }
+
+                                      // Use student's first name only if available
+                                      String displayName = isRealStudent
+                                          ? score.name.split(' ').first
+                                          : 'Student ${index + 1}';
+
                                       return GestureDetector(
                                         onTap: () {
                                           setState(() {
                                             selectedIndex = index;
-                                            selectedStudentName = score.name;
+                                            selectedStudentName = isRealStudent
+                                                ? score.name
+                                                : 'Student ${index + 1}';
                                           });
                                         },
                                         child: _buildBarWithLabel(
-                                          score.score * widget.animationValue,
-                                          'Stu${index + 1}',
-                                          Colors.red,
+                                          // Only show a bar with actual height if student has data
+                                          isRealStudent
+                                              ? score.score *
+                                                  widget.animationValue
+                                              : 0,
+                                          displayName,
+                                          // Blue for real students, grey for placeholders
+                                          isRealStudent
+                                              ? Colors.blue.shade600
+                                              : Colors.grey.shade300,
                                           availableHeight,
                                           barWidth,
                                           labelFontSize,
@@ -190,10 +220,11 @@ class _tBarChartAdminState extends State<tBarChartAdmin> {
                       Positioned(
                         left: (barWidth * selectedIndex! +
                             (selectedIndex! * 5) +
-                            barWidth +
-                            10), // Position to the right of bar
-                        top:
-                            tapPosition!.dy - 40, // Adjust vertically to center
+                            barWidth / 2), // Position centered above bar
+                        top: (tapPosition!.dy - 90).clamp(
+                            20.0,
+                            availableHeight +
+                                20), // Adjust vertically to ensure visibility
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12.0, vertical: 6.0),
@@ -213,7 +244,9 @@ class _tBarChartAdminState extends State<tBarChartAdmin> {
                             ],
                           ),
                           child: Text(
-                            'Student ${selectedIndex! + 1}\n${selectedStudentName ?? 'Unknown'}',
+                            widget.studentScores.length > selectedIndex!
+                                ? '${selectedStudentName ?? 'غير معروف'}\nإجمالي: ${widget.studentScores[selectedIndex!].score.toStringAsFixed(1)}%\nالحضور: ${widget.studentScores[selectedIndex!].attendanceScore.toStringAsFixed(1)}%\nالواجبات: ${widget.studentScores[selectedIndex!].assignmentScore.toStringAsFixed(1)}%\nالاختبارات: ${widget.studentScores[selectedIndex!].testScore.toStringAsFixed(1)}%'
+                                : '${selectedStudentName ?? 'غير معروف'}\n0%',
                             style: TextStyle(
                               fontSize: labelFontSize + 2,
                               fontWeight: FontWeight.bold,

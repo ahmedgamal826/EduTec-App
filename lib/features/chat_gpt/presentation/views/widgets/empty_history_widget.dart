@@ -26,7 +26,7 @@ class EmptyHistoryWidget extends StatelessWidget {
               fontStyle: FontStyle.italic,
               color: profileProvider.isDarkMode
                   ? const Color.fromARGB(255, 152, 148, 148)
-                  : Color.fromARGB(255, 97, 95, 95),
+                  : const Color.fromARGB(255, 97, 95, 95),
             ),
           ),
         ),

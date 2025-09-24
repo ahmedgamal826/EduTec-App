@@ -466,6 +466,7 @@
 //   }
 // }
 
+import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../manager/analysis_manager.dart';
@@ -473,7 +474,7 @@ import 'circular_progress_admin.dart';
 import 'bar_chart_admin.dart';
 
 class AnalysisViewAdminBody extends StatefulWidget {
-  const AnalysisViewAdminBody({Key? key}) : super(key: key);
+  const AnalysisViewAdminBody({super.key});
 
   @override
   State<AnalysisViewAdminBody> createState() => _AnalysisViewAdminBodyState();
@@ -514,7 +515,10 @@ class _AnalysisViewAdminBodyState extends State<AnalysisViewAdminBody>
     return Consumer<AnalysisManager>(
       builder: (context, manager, child) {
         if (manager.isAdminLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+              child: CircularProgressIndicator(
+            color: AppColors.primaryColor,
+          ));
         }
 
         if (manager.adminError != null) {

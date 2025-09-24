@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 class StudentAttendanceView extends StatelessWidget {
   final DateTime date;
 
-  StudentAttendanceView({required this.date});
+  const StudentAttendanceView({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {

@@ -67,6 +67,13 @@ class _ChatGPTHomeViewState extends State<ChatGPTHomeView> {
                 ? const Color(0xff1E1E1E)
                 : AppColors.primaryColor,
             centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                // Go back to the main app view (root screen)
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
             title: const ChatHomeAppBar(),
             // actions: [
             //   if (chatProvider.messagesInChat.isNotEmpty)

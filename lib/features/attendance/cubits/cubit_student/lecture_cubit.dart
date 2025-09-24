@@ -288,618 +288,6 @@
 //   }
 // }
 
-// Future<void> loadLectures() async {
-//   emit(state.copyWith(status: StudentLectureStatus.loading));
-
-//   try {
-//     // Get the current student's name
-//     User? currentUser = FirebaseAuth.instance.currentUser;
-//     if (currentUser == null) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User not logged in',
-//       ));
-//       return;
-//     }
-//     String? studentName = currentUser.displayName;
-//     if (studentName == null || studentName.isEmpty) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User name not found',
-//       ));
-//       return;
-//     }
-
-//     // Fetch lectures for the course
-//     DocumentReference courseRef =
-//         FirebaseFirestore.instance.collection('Courses').doc(courseId);
-//     QuerySnapshot lecturesSnapshot = await courseRef
-//         .collection('lectures')
-//         .orderBy('lectureNumber', descending: false)
-//         .get();
-
-//     List<StudentLectureModel> lectures = [];
-//     for (var doc in lecturesSnapshot.docs) {
-//       final data = doc.data() as Map<String, dynamic>;
-
-//       // Fetch all attendance records for this lecture
-//       QuerySnapshot attendanceSnapshot = await courseRef
-//           .collection('lectures')
-//           .doc(doc.id)
-//           .collection('attendance')
-//           .get();
-
-//       bool hasAttended = false;
-//       int bonusCount = 0;
-
-//       // Check if the current student's name exists in the attendance collection
-//       for (var attendanceDoc in attendanceSnapshot.docs) {
-//         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
-//         String? nameInAttendance = attendanceData['name'];
-//         if (nameInAttendance == studentName) {
-//           hasAttended = true;
-//           bonusCount = attendanceData['bonusCount'] ?? 0;
-//           break;
-//         }
-//       }
-
-//       lectures.add(StudentLectureModel(
-//         number: data['lectureNumber'] ?? 0,
-//         name: data['name'] ?? 'Unknown',
-//         date: data['date'] ?? 'Unknown',
-//         time: data['time'] ?? 'Unknown',
-//         hasAttended: hasAttended,
-//         bonusCount: bonusCount,
-//       ));
-//     }
-
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.success,
-//       lectures: lectures,
-//       filteredLectures: lectures,
-//     ));
-//   } catch (e) {
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.failure,
-//       errorMessage: 'Failed to load lectures: ${e.toString()}',
-//     ));
-//   }
-// }
-
-// Future<void> loadLectures() async {
-//   emit(state.copyWith(status: StudentLectureStatus.loading));
-
-//   try {
-//     // Get the current student's UID
-//     User? currentUser = FirebaseAuth.instance.currentUser;
-//     if (currentUser == null) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User not logged in',
-//       ));
-//       return;
-//     }
-
-//     // Fetch the student's name from Firestore using their UID
-//     DocumentSnapshot userDoc = await FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(currentUser.uid)
-//         .get();
-
-//     if (!userDoc.exists) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User data not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     String? studentName = userDoc['name'];
-//     if (studentName == null || studentName.isEmpty) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User name not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     // Normalize the student name (convert to lowercase and trim spaces)
-//     studentName = studentName.toLowerCase().trim();
-
-//     // Fetch lectures for the course
-//     DocumentReference courseRef =
-//         FirebaseFirestore.instance.collection('Courses').doc(courseId);
-//     QuerySnapshot lecturesSnapshot = await courseRef
-//         .collection('lectures')
-//         .orderBy('lectureNumber', descending: false)
-//         .get();
-
-//     List<StudentLectureModel> lectures = [];
-//     for (var doc in lecturesSnapshot.docs) {
-//       final data = doc.data() as Map<String, dynamic>;
-
-//       // Fetch all attendance records for this lecture
-//       QuerySnapshot attendanceSnapshot = await courseRef
-//           .collection('lectures')
-//           .doc(doc.id)
-//           .collection('attendance')
-//           .get();
-
-//       bool hasAttended = false;
-//       int bonusCount = 0;
-
-//       // Check if the current student's name exists in the attendance collection
-//       for (var attendanceDoc in attendanceSnapshot.docs) {
-//         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
-//         String? nameInAttendance = attendanceData['name'];
-//         if (nameInAttendance != null) {
-//           // Normalize the name from attendance (convert to lowercase and trim spaces)
-//           nameInAttendance = nameInAttendance.toLowerCase().trim();
-//           if (nameInAttendance == studentName) {
-//             hasAttended = true;
-//             bonusCount = attendanceData['bonusCount']?.toInt() ?? 0;
-//             break;
-//           }
-//         }
-//       }
-
-//       // Determine the time format (combine start_hour_12 and end_hour_12)
-//       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
-//       String startMinute =
-//           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
-//       String endMinute =
-//           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String period = data['end_period'] ?? '';
-//       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
-
-//       lectures.add(StudentLectureModel(
-//         number: data['lectureNumber']?.toInt() ?? 0,
-//         name: data['name'] ?? 'Unknown',
-//         date: data['date'] ?? 'Unknown',
-//         time: time,
-//         hasAttended: hasAttended,
-//         bonusCount: bonusCount,
-//       ));
-//     }
-
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.success,
-//       lectures: lectures,
-//       filteredLectures: lectures,
-//     ));
-//   } catch (e) {
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.failure,
-//       errorMessage: 'Failed to load lectures: ${e.toString()}',
-//     ));
-//   }
-// }
-
-// Future<void> loadLectures() async {
-//   emit(state.copyWith(status: StudentLectureStatus.loading));
-
-//   try {
-//     // Get the current student's UID
-//     User? currentUser = FirebaseAuth.instance.currentUser;
-//     if (currentUser == null) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User not logged in',
-//       ));
-//       return;
-//     }
-
-//     // Fetch the student's name from Firestore using their UID
-//     DocumentSnapshot userDoc = await FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(currentUser.uid)
-//         .get();
-
-//     if (!userDoc.exists) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User data not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     String? studentName = userDoc['name'];
-//     if (studentName == null || studentName.isEmpty) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User name not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     // Normalize the student name (convert to lowercase, trim spaces, and replace multiple spaces with single space)
-//     studentName =
-//         studentName.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
-//     print('Normalized Student Name: "$studentName"');
-
-//     // Fetch lectures for the course
-//     DocumentReference courseRef =
-//         FirebaseFirestore.instance.collection('Courses').doc(courseId);
-//     QuerySnapshot lecturesSnapshot = await courseRef
-//         .collection('lectures')
-//         .orderBy('lectureNumber', descending: false)
-//         .get();
-
-//     List<StudentLectureModel> lectures = [];
-//     for (var doc in lecturesSnapshot.docs) {
-//       final data = doc.data() as Map<String, dynamic>;
-
-//       // Fetch all attendance records for this lecture
-//       QuerySnapshot attendanceSnapshot = await courseRef
-//           .collection('lectures')
-//           .doc(doc.id)
-//           .collection('attendance')
-//           .get();
-
-//       bool hasAttended = false;
-//       int bonusCount = 0;
-
-//       // Check if the current student's name exists in the attendance collection
-//       for (var attendanceDoc in attendanceSnapshot.docs) {
-//         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
-//         String? nameInAttendance = attendanceData['name'];
-
-//         if (nameInAttendance != null) {
-//           // Normalize the name from attendance (convert to lowercase, trim spaces, and replace multiple spaces with single space)
-//           nameInAttendance = nameInAttendance
-//               .toLowerCase()
-//               .trim()
-//               .replaceAll(RegExp(r'\s+'), ' ');
-//           print('Student Name in Attendance: "$nameInAttendance"');
-
-//           // Check if the name matches
-//           if (nameInAttendance == studentName) {
-//             // Read the Check-out field
-//             String? checkOut = attendanceData['Check-out']?.toString();
-//             print('Check-out Value for $nameInAttendance: "$checkOut"');
-
-//             // Check if Check-out is not empty
-//             if (checkOut != null && checkOut.trim().isNotEmpty) {
-//               hasAttended = true;
-//               bonusCount = attendanceData['bonusCount']?.toInt() ?? 0;
-//               print(
-//                   'Attendance Match Found! Has Attended: $hasAttended, Bonus: $bonusCount');
-//               break;
-//             } else {
-//               print(
-//                   'No Check-out for $nameInAttendance: Check-out Valid=${checkOut != null && checkOut.trim().isNotEmpty}');
-//             }
-//           }
-//         }
-//       }
-
-//       // Determine the time format (combine start_hour_12 and end_hour_12)
-//       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
-//       String startMinute =
-//           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
-//       String endMinute =
-//           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String period = data['end_period'] ?? '';
-//       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
-
-//       lectures.add(StudentLectureModel(
-//         number: data['lectureNumber']?.toInt() ?? 0,
-//         name: data['name'] ?? 'Unknown',
-//         date: data['date'] ?? 'Unknown',
-//         time: time,
-//         hasAttended: hasAttended,
-//         bonusCount: bonusCount,
-//       ));
-//     }
-
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.success,
-//       lectures: lectures,
-//       filteredLectures: lectures,
-//     ));
-//   } catch (e) {
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.failure,
-//       errorMessage: 'Failed to load lectures: ${e.toString()}',
-//     ));
-//   }
-// }
-
-// Future<void> loadLectures() async {
-//   emit(state.copyWith(status: StudentLectureStatus.loading));
-
-//   try {
-//     // Get the current student's UID
-//     User? currentUser = FirebaseAuth.instance.currentUser;
-//     if (currentUser == null) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User not logged in',
-//       ));
-//       return;
-//     }
-
-//     // Fetch the student's name from Firestore using their UID
-//     DocumentSnapshot userDoc = await FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(currentUser.uid)
-//         .get();
-
-//     if (!userDoc.exists) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User data not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     String? studentName = userDoc['name'];
-//     if (studentName == null || studentName.isEmpty) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User name not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     // Normalize the student name (convert to lowercase, trim spaces, and replace multiple spaces with single space)
-//     studentName =
-//         studentName.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
-//     print('Normalized Student Name: "$studentName"');
-
-//     // Fetch lectures for the course
-//     DocumentReference courseRef =
-//         FirebaseFirestore.instance.collection('Courses').doc(courseId);
-//     QuerySnapshot lecturesSnapshot = await courseRef
-//         .collection('lectures')
-//         .orderBy('lectureNumber', descending: false)
-//         .get();
-
-//     List<StudentLectureModel> lectures = [];
-//     for (var doc in lecturesSnapshot.docs) {
-//       final data = doc.data() as Map<String, dynamic>;
-
-//       // Fetch all attendance records for this lecture
-//       QuerySnapshot attendanceSnapshot = await courseRef
-//           .collection('lectures')
-//           .doc(doc.id)
-//           .collection('attendance')
-//           .get();
-
-//       bool hasAttended = false;
-//       int bonusCount = 0;
-
-//       // Check for matching documents
-//       for (var attendanceDoc in attendanceSnapshot.docs) {
-//         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
-//         String? nameInAttendance = attendanceData['name'];
-
-//         if (nameInAttendance != null) {
-//           // Normalize the name from attendance
-//           nameInAttendance = nameInAttendance
-//               .toLowerCase()
-//               .trim()
-//               .replaceAll(RegExp(r'\s+'), ' ');
-//           print(
-//               'Student Name in Attendance for doc ${attendanceDoc.id}: "$nameInAttendance"');
-
-//           // Only proceed if the name matches
-//           if (nameInAttendance == studentName) {
-//             // Print all fields in the document to debug
-//             print('Document ${attendanceDoc.id} Data: $attendanceData');
-
-//             // Try to find the Check-out field inside nested maps
-//             String? checkOut;
-//             // Look for a nested map (like "2025-04-27") and read Check-out from it
-//             for (var key in attendanceData.keys) {
-//               if (key != 'name' && attendanceData[key] is Map) {
-//                 var nestedData = attendanceData[key] as Map<String, dynamic>;
-//                 checkOut = nestedData['Check-out']?.toString();
-//                 if (checkOut != null && checkOut.trim().isNotEmpty) {
-//                   bonusCount = nestedData['bonusCount']?.toInt() ?? 0;
-//                   break;
-//                 }
-//               }
-//             }
-
-//             print('Check-out Value for doc ${attendanceDoc.id}: "$checkOut"');
-
-//             // Check if Check-out is not empty
-//             if (checkOut != null && checkOut.trim().isNotEmpty) {
-//               hasAttended = true;
-//               print(
-//                   'Attendance Match Found for doc ${attendanceDoc.id}! Has Attended: $hasAttended, Bonus: $bonusCount');
-//               break;
-//             } else {
-//               print(
-//                   'No Check-out for doc ${attendanceDoc.id}: Check-out Valid=${checkOut != null && checkOut.trim().isNotEmpty}, continuing to search...');
-//             }
-//           }
-//         }
-//       }
-
-//       // Determine the time format (combine start_hour_12 and end_hour_12)
-//       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
-//       String startMinute =
-//           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
-//       String endMinute =
-//           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String period = data['end_period'] ?? '';
-//       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
-
-//       lectures.add(StudentLectureModel(
-//         number: data['lectureNumber']?.toInt() ?? 0,
-//         name: data['name'] ?? 'Unknown',
-//         date: data['date'] ?? 'Unknown',
-//         time: time,
-//         hasAttended: hasAttended,
-//         bonusCount: bonusCount,
-//       ));
-//     }
-
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.success,
-//       lectures: lectures,
-//       filteredLectures: lectures,
-//     ));
-//   } catch (e) {
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.failure,
-//       errorMessage: 'Failed to load lectures: ${e.toString()}',
-//     ));
-//   }
-// }
-
-// Future<void> loadLectures() async {
-//   emit(state.copyWith(status: StudentLectureStatus.loading));
-
-//   try {
-//     // Get the current student's UID
-//     User? currentUser = FirebaseAuth.instance.currentUser;
-//     if (currentUser == null) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User not logged in',
-//       ));
-//       return;
-//     }
-
-//     // Fetch the student's name from Firestore using their UID
-//     DocumentSnapshot userDoc = await FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(currentUser.uid)
-//         .get();
-
-//     if (!userDoc.exists) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User data not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     String? studentName = userDoc['name'];
-//     if (studentName == null || studentName.isEmpty) {
-//       emit(state.copyWith(
-//         status: StudentLectureStatus.failure,
-//         errorMessage: 'User name not found in Firestore',
-//       ));
-//       return;
-//     }
-
-//     // Normalize the student name (convert to lowercase, trim spaces, and replace multiple spaces with single space)
-//     studentName =
-//         studentName.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
-//     print('Normalized Student Name: "$studentName"');
-
-//     // Fetch lectures for the course
-//     DocumentReference courseRef =
-//         FirebaseFirestore.instance.collection('Courses').doc(courseId);
-//     QuerySnapshot lecturesSnapshot = await courseRef
-//         .collection('lectures')
-//         .orderBy('lectureNumber', descending: false)
-//         .get();
-
-//     List<StudentLectureModel> lectures = [];
-//     for (var doc in lecturesSnapshot.docs) {
-//       final data = doc.data() as Map<String, dynamic>;
-
-//       // Fetch all attendance records for this lecture
-//       QuerySnapshot attendanceSnapshot = await courseRef
-//           .collection('lectures')
-//           .doc(doc.id)
-//           .collection('attendance')
-//           .get();
-
-//       bool hasAttended = false;
-//       int bonusCount = 0;
-
-//       // Check for matching documents
-//       for (var attendanceDoc in attendanceSnapshot.docs) {
-//         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
-//         String? nameInAttendance = attendanceData['name'];
-
-//         if (nameInAttendance != null) {
-//           // Normalize the name from attendance
-//           nameInAttendance = nameInAttendance
-//               .toLowerCase()
-//               .trim()
-//               .replaceAll(RegExp(r'\s+'), ' ');
-//           print(
-//               'Student Name in Attendance for doc ${attendanceDoc.id}: "$nameInAttendance"');
-
-//           // Only proceed if the name matches
-//           if (nameInAttendance == studentName) {
-//             // Print all fields in the document to debug
-//             print('Document ${attendanceDoc.id} Data: $attendanceData');
-
-//             // Try to find the Check-out field inside nested maps
-//             String? checkOut;
-//             // Look for a nested map (like "2025-04-27") and read Check-out from it
-//             for (var key in attendanceData.keys) {
-//               if (key != 'name' && attendanceData[key] is Map) {
-//                 var nestedData = attendanceData[key] as Map<String, dynamic>;
-//                 checkOut = nestedData['Check-out']?.toString();
-//                 if (checkOut != null && checkOut.trim().isNotEmpty) {
-//                   bonusCount = nestedData['bonusCount']?.toInt() ?? 0;
-//                   break;
-//                 }
-//               }
-//             }
-
-//             print('Check-out Value for doc ${attendanceDoc.id}: "$checkOut"');
-
-//             // Check if Check-out is not empty and not "--"
-//             if (checkOut != null &&
-//                 checkOut.trim().isNotEmpty &&
-//                 checkOut.trim() != "--") {
-//               hasAttended = true;
-//               print(
-//                   'Attendance Match Found for doc ${attendanceDoc.id}! Has Attended: $hasAttended, Bonus: $bonusCount');
-//               break;
-//             } else {
-//               print(
-//                   'No Check-out for doc ${attendanceDoc.id}: Check-out Valid=${checkOut != null && checkOut.trim().isNotEmpty && checkOut.trim() != "--"}, continuing to search...');
-//             }
-//           }
-//         }
-//       }
-
-//       // Determine the time format (combine start_hour_12 and end_hour_12)
-//       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
-//       String startMinute =
-//           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
-//       String endMinute =
-//           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
-//       String period = data['end_period'] ?? '';
-//       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
-
-//       lectures.add(StudentLectureModel(
-//         number: data['lectureNumber']?.toInt() ?? 0,
-//         name: data['name'] ?? 'Unknown',
-//         date: data['date'] ?? 'Unknown',
-//         time: time,
-//         hasAttended: hasAttended,
-//         bonusCount: bonusCount,
-//       ));
-//     }
-
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.success,
-//       lectures: lectures,
-//       filteredLectures: lectures,
-//     ));
-//   } catch (e) {
-//     emit(state.copyWith(
-//       status: StudentLectureStatus.failure,
-//       errorMessage: 'Failed to load lectures: ${e.toString()}',
-//     ));
-//   }
-// }
 // lib/features/attendance/cubits/cubit_student/student_lecture_cubit.dart
 import 'package:attendance_app/features/attendance/cubits/cubit_student/lecture_state.dart';
 import 'package:attendance_app/features/attendance/models/lecture_model_student.dart';
@@ -914,6 +302,620 @@ class StudentLectureCubit extends Cubit<StudentLectureState> {
       : super(const StudentLectureState()) {
     loadLectures();
   }
+
+  // Future<void> loadLectures() async {
+  //   emit(state.copyWith(status: StudentLectureStatus.loading));
+
+  //   try {
+  //     // Get the current student's name
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser == null) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User not logged in',
+  //       ));
+  //       return;
+  //     }
+  //     String? studentName = currentUser.displayName;
+  //     if (studentName == null || studentName.isEmpty) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User name not found',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Fetch lectures for the course
+  //     DocumentReference courseRef =
+  //         FirebaseFirestore.instance.collection('Courses').doc(courseId);
+  //     QuerySnapshot lecturesSnapshot = await courseRef
+  //         .collection('lectures')
+  //         .orderBy('lectureNumber', descending: false)
+  //         .get();
+
+  //     List<StudentLectureModel> lectures = [];
+  //     for (var doc in lecturesSnapshot.docs) {
+  //       final data = doc.data() as Map<String, dynamic>;
+
+  //       // Fetch all attendance records for this lecture
+  //       QuerySnapshot attendanceSnapshot = await courseRef
+  //           .collection('lectures')
+  //           .doc(doc.id)
+  //           .collection('attendance')
+  //           .get();
+
+  //       bool hasAttended = false;
+  //       int bonusCount = 0;
+
+  //       // Check if the current student's name exists in the attendance collection
+  //       for (var attendanceDoc in attendanceSnapshot.docs) {
+  //         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
+  //         String? nameInAttendance = attendanceData['name'];
+  //         if (nameInAttendance == studentName) {
+  //           hasAttended = true;
+  //           bonusCount = attendanceData['bonusCount'] ?? 0;
+  //           break;
+  //         }
+  //       }
+
+  //       lectures.add(StudentLectureModel(
+  //         number: data['lectureNumber'] ?? 0,
+  //         name: data['name'] ?? 'Unknown',
+  //         date: data['date'] ?? 'Unknown',
+  //         time: data['time'] ?? 'Unknown',
+  //         hasAttended: hasAttended,
+  //         bonusCount: bonusCount,
+  //       ));
+  //     }
+
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.success,
+  //       lectures: lectures,
+  //       filteredLectures: lectures,
+  //     ));
+  //   } catch (e) {
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.failure,
+  //       errorMessage: 'Failed to load lectures: ${e.toString()}',
+  //     ));
+  //   }
+  // }
+
+  // Future<void> loadLectures() async {
+  //   emit(state.copyWith(status: StudentLectureStatus.loading));
+
+  //   try {
+  //     // Get the current student's UID
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser == null) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User not logged in',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Fetch the student's name from Firestore using their UID
+  //     DocumentSnapshot userDoc = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(currentUser.uid)
+  //         .get();
+
+  //     if (!userDoc.exists) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User data not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     String? studentName = userDoc['name'];
+  //     if (studentName == null || studentName.isEmpty) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User name not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Normalize the student name (convert to lowercase and trim spaces)
+  //     studentName = studentName.toLowerCase().trim();
+
+  //     // Fetch lectures for the course
+  //     DocumentReference courseRef =
+  //         FirebaseFirestore.instance.collection('Courses').doc(courseId);
+  //     QuerySnapshot lecturesSnapshot = await courseRef
+  //         .collection('lectures')
+  //         .orderBy('lectureNumber', descending: false)
+  //         .get();
+
+  //     List<StudentLectureModel> lectures = [];
+  //     for (var doc in lecturesSnapshot.docs) {
+  //       final data = doc.data() as Map<String, dynamic>;
+
+  //       // Fetch all attendance records for this lecture
+  //       QuerySnapshot attendanceSnapshot = await courseRef
+  //           .collection('lectures')
+  //           .doc(doc.id)
+  //           .collection('attendance')
+  //           .get();
+
+  //       bool hasAttended = false;
+  //       int bonusCount = 0;
+
+  //       // Check if the current student's name exists in the attendance collection
+  //       for (var attendanceDoc in attendanceSnapshot.docs) {
+  //         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
+  //         String? nameInAttendance = attendanceData['name'];
+  //         if (nameInAttendance != null) {
+  //           // Normalize the name from attendance (convert to lowercase and trim spaces)
+  //           nameInAttendance = nameInAttendance.toLowerCase().trim();
+  //           if (nameInAttendance == studentName) {
+  //             hasAttended = true;
+  //             bonusCount = attendanceData['bonusCount']?.toInt() ?? 0;
+  //             break;
+  //           }
+  //         }
+  //       }
+
+  //       // Determine the time format (combine start_hour_12 and end_hour_12)
+  //       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
+  //       String startMinute =
+  //           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
+  //       String endMinute =
+  //           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String period = data['end_period'] ?? '';
+  //       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
+
+  //       lectures.add(StudentLectureModel(
+  //         number: data['lectureNumber']?.toInt() ?? 0,
+  //         name: data['name'] ?? 'Unknown',
+  //         date: data['date'] ?? 'Unknown',
+  //         time: time,
+  //         hasAttended: hasAttended,
+  //         bonusCount: bonusCount,
+  //       ));
+  //     }
+
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.success,
+  //       lectures: lectures,
+  //       filteredLectures: lectures,
+  //     ));
+  //   } catch (e) {
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.failure,
+  //       errorMessage: 'Failed to load lectures: ${e.toString()}',
+  //     ));
+  //   }
+  // }
+
+  // Future<void> loadLectures() async {
+  //   emit(state.copyWith(status: StudentLectureStatus.loading));
+
+  //   try {
+  //     // Get the current student's UID
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser == null) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User not logged in',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Fetch the student's name from Firestore using their UID
+  //     DocumentSnapshot userDoc = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(currentUser.uid)
+  //         .get();
+
+  //     if (!userDoc.exists) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User data not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     String? studentName = userDoc['name'];
+  //     if (studentName == null || studentName.isEmpty) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User name not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Normalize the student name (convert to lowercase, trim spaces, and replace multiple spaces with single space)
+  //     studentName =
+  //         studentName.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+  //     print('Normalized Student Name: "$studentName"');
+
+  //     // Fetch lectures for the course
+  //     DocumentReference courseRef =
+  //         FirebaseFirestore.instance.collection('Courses').doc(courseId);
+  //     QuerySnapshot lecturesSnapshot = await courseRef
+  //         .collection('lectures')
+  //         .orderBy('lectureNumber', descending: false)
+  //         .get();
+
+  //     List<StudentLectureModel> lectures = [];
+  //     for (var doc in lecturesSnapshot.docs) {
+  //       final data = doc.data() as Map<String, dynamic>;
+
+  //       // Fetch all attendance records for this lecture
+  //       QuerySnapshot attendanceSnapshot = await courseRef
+  //           .collection('lectures')
+  //           .doc(doc.id)
+  //           .collection('attendance')
+  //           .get();
+
+  //       bool hasAttended = false;
+  //       int bonusCount = 0;
+
+  //       // Check if the current student's name exists in the attendance collection
+  //       for (var attendanceDoc in attendanceSnapshot.docs) {
+  //         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
+  //         String? nameInAttendance = attendanceData['name'];
+
+  //         if (nameInAttendance != null) {
+  //           // Normalize the name from attendance (convert to lowercase, trim spaces, and replace multiple spaces with single space)
+  //           nameInAttendance = nameInAttendance
+  //               .toLowerCase()
+  //               .trim()
+  //               .replaceAll(RegExp(r'\s+'), ' ');
+  //           print('Student Name in Attendance: "$nameInAttendance"');
+
+  //           // Check if the name matches
+  //           if (nameInAttendance == studentName) {
+  //             // Read the Check-out field
+  //             String? checkOut = attendanceData['Check-out']?.toString();
+  //             print('Check-out Value for $nameInAttendance: "$checkOut"');
+
+  //             // Check if Check-out is not empty
+  //             if (checkOut != null && checkOut.trim().isNotEmpty) {
+  //               hasAttended = true;
+  //               bonusCount = attendanceData['bonusCount']?.toInt() ?? 0;
+  //               print(
+  //                   'Attendance Match Found! Has Attended: $hasAttended, Bonus: $bonusCount');
+  //               break;
+  //             } else {
+  //               print(
+  //                   'No Check-out for $nameInAttendance: Check-out Valid=${checkOut != null && checkOut.trim().isNotEmpty}');
+  //             }
+  //           }
+  //         }
+  //       }
+
+  //       // Determine the time format (combine start_hour_12 and end_hour_12)
+  //       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
+  //       String startMinute =
+  //           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
+  //       String endMinute =
+  //           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String period = data['end_period'] ?? '';
+  //       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
+
+  //       lectures.add(StudentLectureModel(
+  //         number: data['lectureNumber']?.toInt() ?? 0,
+  //         name: data['name'] ?? 'Unknown',
+  //         date: data['date'] ?? 'Unknown',
+  //         time: time,
+  //         hasAttended: hasAttended,
+  //         bonusCount: bonusCount,
+  //       ));
+  //     }
+
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.success,
+  //       lectures: lectures,
+  //       filteredLectures: lectures,
+  //     ));
+  //   } catch (e) {
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.failure,
+  //       errorMessage: 'Failed to load lectures: ${e.toString()}',
+  //     ));
+  //   }
+  // }
+
+  // Future<void> loadLectures() async {
+  //   emit(state.copyWith(status: StudentLectureStatus.loading));
+
+  //   try {
+  //     // Get the current student's UID
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser == null) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User not logged in',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Fetch the student's name from Firestore using their UID
+  //     DocumentSnapshot userDoc = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(currentUser.uid)
+  //         .get();
+
+  //     if (!userDoc.exists) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User data not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     String? studentName = userDoc['name'];
+  //     if (studentName == null || studentName.isEmpty) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User name not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Normalize the student name (convert to lowercase, trim spaces, and replace multiple spaces with single space)
+  //     studentName =
+  //         studentName.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+  //     print('Normalized Student Name: "$studentName"');
+
+  //     // Fetch lectures for the course
+  //     DocumentReference courseRef =
+  //         FirebaseFirestore.instance.collection('Courses').doc(courseId);
+  //     QuerySnapshot lecturesSnapshot = await courseRef
+  //         .collection('lectures')
+  //         .orderBy('lectureNumber', descending: false)
+  //         .get();
+
+  //     List<StudentLectureModel> lectures = [];
+  //     for (var doc in lecturesSnapshot.docs) {
+  //       final data = doc.data() as Map<String, dynamic>;
+
+  //       // Fetch all attendance records for this lecture
+  //       QuerySnapshot attendanceSnapshot = await courseRef
+  //           .collection('lectures')
+  //           .doc(doc.id)
+  //           .collection('attendance')
+  //           .get();
+
+  //       bool hasAttended = false;
+  //       int bonusCount = 0;
+
+  //       // Check for matching documents
+  //       for (var attendanceDoc in attendanceSnapshot.docs) {
+  //         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
+  //         String? nameInAttendance = attendanceData['name'];
+
+  //         if (nameInAttendance != null) {
+  //           // Normalize the name from attendance
+  //           nameInAttendance = nameInAttendance
+  //               .toLowerCase()
+  //               .trim()
+  //               .replaceAll(RegExp(r'\s+'), ' ');
+  //           print(
+  //               'Student Name in Attendance for doc ${attendanceDoc.id}: "$nameInAttendance"');
+
+  //           // Only proceed if the name matches
+  //           if (nameInAttendance == studentName) {
+  //             // Print all fields in the document to debug
+  //             print('Document ${attendanceDoc.id} Data: $attendanceData');
+
+  //             // Try to find the Check-out field inside nested maps
+  //             String? checkOut;
+  //             // Look for a nested map (like "2025-04-27") and read Check-out from it
+  //             for (var key in attendanceData.keys) {
+  //               if (key != 'name' && attendanceData[key] is Map) {
+  //                 var nestedData = attendanceData[key] as Map<String, dynamic>;
+  //                 checkOut = nestedData['Check-out']?.toString();
+  //                 if (checkOut != null && checkOut.trim().isNotEmpty) {
+  //                   bonusCount = nestedData['bonusCount']?.toInt() ?? 0;
+  //                   break;
+  //                 }
+  //               }
+  //             }
+
+  //             print('Check-out Value for doc ${attendanceDoc.id}: "$checkOut"');
+
+  //             // Check if Check-out is not empty
+  //             if (checkOut != null && checkOut.trim().isNotEmpty) {
+  //               hasAttended = true;
+  //               print(
+  //                   'Attendance Match Found for doc ${attendanceDoc.id}! Has Attended: $hasAttended, Bonus: $bonusCount');
+  //               break;
+  //             } else {
+  //               print(
+  //                   'No Check-out for doc ${attendanceDoc.id}: Check-out Valid=${checkOut != null && checkOut.trim().isNotEmpty}, continuing to search...');
+  //             }
+  //           }
+  //         }
+  //       }
+
+  //       // Determine the time format (combine start_hour_12 and end_hour_12)
+  //       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
+  //       String startMinute =
+  //           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
+  //       String endMinute =
+  //           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String period = data['end_period'] ?? '';
+  //       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
+
+  //       lectures.add(StudentLectureModel(
+  //         number: data['lectureNumber']?.toInt() ?? 0,
+  //         name: data['name'] ?? 'Unknown',
+  //         date: data['date'] ?? 'Unknown',
+  //         time: time,
+  //         hasAttended: hasAttended,
+  //         bonusCount: bonusCount,
+  //       ));
+  //     }
+
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.success,
+  //       lectures: lectures,
+  //       filteredLectures: lectures,
+  //     ));
+  //   } catch (e) {
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.failure,
+  //       errorMessage: 'Failed to load lectures: ${e.toString()}',
+  //     ));
+  //   }
+  // }
+
+  // Future<void> loadLectures() async {
+  //   emit(state.copyWith(status: StudentLectureStatus.loading));
+
+  //   try {
+  //     // Get the current student's UID
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
+  //     if (currentUser == null) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User not logged in',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Fetch the student's name from Firestore using their UID
+  //     DocumentSnapshot userDoc = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(currentUser.uid)
+  //         .get();
+
+  //     if (!userDoc.exists) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User data not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     String? studentName = userDoc['name'];
+  //     if (studentName == null || studentName.isEmpty) {
+  //       emit(state.copyWith(
+  //         status: StudentLectureStatus.failure,
+  //         errorMessage: 'User name not found in Firestore',
+  //       ));
+  //       return;
+  //     }
+
+  //     // Normalize the student name (convert to lowercase, trim spaces, and replace multiple spaces with single space)
+  //     studentName =
+  //         studentName.toLowerCase().trim().replaceAll(RegExp(r'\s+'), ' ');
+  //     print('Normalized Student Name: "$studentName"');
+
+  //     // Fetch lectures for the course
+  //     DocumentReference courseRef =
+  //         FirebaseFirestore.instance.collection('Courses').doc(courseId);
+  //     QuerySnapshot lecturesSnapshot = await courseRef
+  //         .collection('lectures')
+  //         .orderBy('lectureNumber', descending: false)
+  //         .get();
+
+  //     List<StudentLectureModel> lectures = [];
+  //     for (var doc in lecturesSnapshot.docs) {
+  //       final data = doc.data() as Map<String, dynamic>;
+
+  //       // Fetch all attendance records for this lecture
+  //       QuerySnapshot attendanceSnapshot = await courseRef
+  //           .collection('lectures')
+  //           .doc(doc.id)
+  //           .collection('attendance')
+  //           .get();
+
+  //       bool hasAttended = false;
+  //       int bonusCount = 0;
+
+  //       // Check for matching documents
+  //       for (var attendanceDoc in attendanceSnapshot.docs) {
+  //         var attendanceData = attendanceDoc.data() as Map<String, dynamic>;
+  //         String? nameInAttendance = attendanceData['name'];
+
+  //         if (nameInAttendance != null) {
+  //           // Normalize the name from attendance
+  //           nameInAttendance = nameInAttendance
+  //               .toLowerCase()
+  //               .trim()
+  //               .replaceAll(RegExp(r'\s+'), ' ');
+  //           print(
+  //               'Student Name in Attendance for doc ${attendanceDoc.id}: "$nameInAttendance"');
+
+  //           // Only proceed if the name matches
+  //           if (nameInAttendance == studentName) {
+  //             // Print all fields in the document to debug
+  //             print('Document ${attendanceDoc.id} Data: $attendanceData');
+
+  //             // Try to find the Check-out field inside nested maps
+  //             String? checkOut;
+  //             // Look for a nested map (like "2025-04-27") and read Check-out from it
+  //             for (var key in attendanceData.keys) {
+  //               if (key != 'name' && attendanceData[key] is Map) {
+  //                 var nestedData = attendanceData[key] as Map<String, dynamic>;
+  //                 checkOut = nestedData['Check-out']?.toString();
+  //                 if (checkOut != null && checkOut.trim().isNotEmpty) {
+  //                   bonusCount = nestedData['bonusCount']?.toInt() ?? 0;
+  //                   break;
+  //                 }
+  //               }
+  //             }
+
+  //             print('Check-out Value for doc ${attendanceDoc.id}: "$checkOut"');
+
+  //             // Check if Check-out is not empty and not "--"
+  //             if (checkOut != null &&
+  //                 checkOut.trim().isNotEmpty &&
+  //                 checkOut.trim() != "--") {
+  //               hasAttended = true;
+  //               print(
+  //                   'Attendance Match Found for doc ${attendanceDoc.id}! Has Attended: $hasAttended, Bonus: $bonusCount');
+  //               break;
+  //             } else {
+  //               print(
+  //                   'No Check-out for doc ${attendanceDoc.id}: Check-out Valid=${checkOut != null && checkOut.trim().isNotEmpty && checkOut.trim() != "--"}, continuing to search...');
+  //             }
+  //           }
+  //         }
+  //       }
+
+  //       // Determine the time format (combine start_hour_12 and end_hour_12)
+  //       String startHour = data['start_hour_12']?.toString() ?? 'Unknown';
+  //       String startMinute =
+  //           data['start_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String endHour = data['end_hour_12']?.toString() ?? 'Unknown';
+  //       String endMinute =
+  //           data['end_minute']?.toString().padLeft(2, '0') ?? '00';
+  //       String period = data['end_period'] ?? '';
+  //       String time = '$startHour:$startMinute - $endHour:$endMinute $period';
+
+  //       lectures.add(StudentLectureModel(
+  //         number: data['lectureNumber']?.toInt() ?? 0,
+  //         name: data['name'] ?? 'Unknown',
+  //         date: data['date'] ?? 'Unknown',
+  //         time: time,
+  //         hasAttended: hasAttended,
+  //         bonusCount: bonusCount,
+  //       ));
+  //     }
+
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.success,
+  //       lectures: lectures,
+  //       filteredLectures: lectures,
+  //     ));
+  //   } catch (e) {
+  //     emit(state.copyWith(
+  //       status: StudentLectureStatus.failure,
+  //       errorMessage: 'Failed to load lectures: ${e.toString()}',
+  //     ));
+  //   }
+  // }
+
   Future<void> loadLectures() async {
     emit(state.copyWith(status: StudentLectureStatus.loading));
 

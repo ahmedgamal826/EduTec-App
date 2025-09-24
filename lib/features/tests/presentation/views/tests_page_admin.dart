@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class TestsPageAdmin extends StatelessWidget {
   final String courseId;
 
-  const TestsPageAdmin({Key? key, required this.courseId}) : super(key: key);
+  const TestsPageAdmin({super.key, required this.courseId});
 
   @override
   Widget build(BuildContext context) {

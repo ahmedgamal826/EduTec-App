@@ -13,7 +13,7 @@ class CircularProgressStudent extends StatelessWidget {
   final bool showFilledCircle;
 
   const CircularProgressStudent({
-    Key? key,
+    super.key,
     required this.label,
     required this.percentage,
     required this.color,
@@ -21,13 +21,16 @@ class CircularProgressStudent extends StatelessWidget {
     required this.size,
     this.isSmallScreen = false,
     this.showFilledCircle = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final strokeWidth = isSmallScreen ? 8.0 : 10.0;
-    final fontSize = isSmallScreen ? 16.0 : 22.0;
-    final labelFontSize = isSmallScreen ? 10.0 : 14.0;
+    // Adjust stroke width based on circle size for better proportions
+    final strokeWidth = size * 0.08; // 8% of circle size
+    
+    // Adjust font sizes based on circle size
+    final fontSize = size * 0.2; // 20% of circle size for percentage
+    final labelFontSize = size * 0.12; // 12% of circle size for label
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -51,22 +54,26 @@ class CircularProgressStudent extends StatelessWidget {
                   fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Flexible(
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: labelFontSize,
-              fontWeight: FontWeight.w600,
+          child: Container(
+            width: size, // Match width with circle
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: labelFontSize,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

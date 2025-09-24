@@ -16,7 +16,7 @@ class AnimatedImageContatiner extends StatelessWidget {
           await profileProvider.pickImage();
         },
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
           height: 140,
           width: 140,

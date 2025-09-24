@@ -1,7 +1,5 @@
-import 'package:attendance_app/features/auth/presentations/views/add_user_screen.dart';
 import 'package:attendance_app/features/auth/presentations/views/widget/show_snack_bar.dart';
 import 'package:attendance_app/features/assistant/presentation/views/assistant_home_view.dart';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // استيراد Firestore
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

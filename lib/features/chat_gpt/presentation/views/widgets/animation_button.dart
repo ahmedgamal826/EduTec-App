@@ -4,7 +4,7 @@ class AnimatedButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isDarkMode;
 
-  const AnimatedButton({
+  const AnimatedButton({super.key, 
     required this.onPressed,
     required this.isDarkMode,
   });

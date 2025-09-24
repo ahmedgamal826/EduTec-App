@@ -163,6 +163,26 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // دالة لتحديث الإجابة النصية
+  void updateTextAnswer(int questionIndex, String text) {
+    if (questionIndex < 0 || questionIndex >= _questions.length) return;
+    
+    final question = _questions[questionIndex];
+    question.textAnswer = text;
+    
+    // تحديث حالة الإجابة فقط إذا كان النص غير فارغ
+    if (text.isNotEmpty) {
+      question.isAnswered = true;
+      print("Text answer updated for question $questionIndex: $text");
+    } else if (question.uploadedFileUrl == null || question.uploadedFileUrl!.isEmpty) {
+      // إذا كان النص فارغًا وليس هناك ملف مرفوع، فالسؤال غير مُجاب عليه
+      question.isAnswered = false;
+    }
+    
+    _updateAllQuestionsAnsweredStatus();
+    notifyListeners();
+  }
+
   Future<void> uploadFile(int questionIndex, File file, String fileName) async {
     if (questionIndex < 0 || questionIndex >= _questions.length) return;
 
@@ -234,23 +254,43 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
   }
 
   void _updateAllQuestionsAnsweredStatus() {
-    bool allAnswered = true;
-
-    for (var question in _questions) {
-      bool questionAnswered = question.isQuestionAnswered();
-      print(
-          'Checking question ${question.id}: answered=$questionAnswered, type=${question.type}, uploadedFileUrl=${question.uploadedFileUrl}, selectedOption=${question.selectedOption}');
-
-      allAnswered = allAnswered && questionAnswered;
-
-      if (!allAnswered) {
-        print('Found unanswered question ${question.id}');
-        break;
+    try {
+      if (_questions.isEmpty) {
+        _allQuestionsAnswered = false;
+        return;
       }
-    }
+      
+      bool allAnswered = true;
 
-    print('All questions answered: $allAnswered');
-    _allQuestionsAnswered = allAnswered;
+      for (var question in _questions) {
+        if (question == null) continue;
+        
+        bool questionAnswered = false;
+        try {
+          questionAnswered = question.isQuestionAnswered();
+        } catch (e) {
+          print('Error checking if question ${question.id} is answered: $e');
+          questionAnswered = false;
+        }
+        
+        print(
+            'Checking question ${question.id}: answered=$questionAnswered, type=${question.type}, uploadedFileUrl=${question.uploadedFileUrl}, selectedOption=${question.selectedOption}');
+
+        allAnswered = allAnswered && questionAnswered;
+
+        if (!allAnswered) {
+          print('Found unanswered question ${question.id}');
+          break;
+        }
+      }
+
+      print('All questions answered: $allAnswered');
+      _allQuestionsAnswered = allAnswered;
+    } catch (e) {
+      print('Error in _updateAllQuestionsAnsweredStatus: $e');
+      _allQuestionsAnswered = false;
+    }
+    
     notifyListeners();
   }
 
@@ -452,6 +492,7 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
         } else if (question.type == 'Upload File') {
           questionData['fileUrl'] = question.uploadedFileUrl;
           questionData['fileName'] = question.uploadedFileName;
+          questionData['textAnswer'] = question.textAnswer; // إضافة الإجابة النصية
           questionData['isGraded'] = false;
           questionData['score'] = 0;
         }
@@ -470,7 +511,10 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
       submissionData['scorePercentage'] = totalQuestions > 0
           ? ((totalScore / totalQuestions) * 100).round()
           : 0;
-      submissionData['status'] = 'submitted';
+      // Si hay preguntas de archivo, marcar como 'needs_grading' en lugar de 'submitted'
+      bool hasFileQuestions = questionAnswers.any((q) => 
+          (q['questionType'] as String).toLowerCase() == 'upload file');
+      submissionData['status'] = hasFileQuestions ? 'needs_grading' : 'submitted';
 
       await FirebaseFirestore.instance
           .collection('Courses')
@@ -481,6 +525,11 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
           .doc(currentUser.uid)
           .set(submissionData);
 
+      // Verificar si hay preguntas de tipo archivo que necesitan calificación manual
+      bool hasFileUploadQuestions = questionAnswers.any((q) => 
+          (q['questionType'] as String).toLowerCase() == 'upload file');
+      
+      // Si hay preguntas de tipo archivo, marcar como no calificado hasta que el admin revise
       await FirebaseFirestore.instance
           .collection('Courses')
           .doc(courseId)
@@ -490,8 +539,8 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
           .doc(currentUser.uid)
           .set({
         'isCompleted': true,
-        'isGraded': true,
-        'score': '${submissionData['scorePercentage']}%',
+        'isGraded': !hasFileUploadQuestions, // Solo se marca como calificado si no hay archivos que revisar
+        'score': hasFileUploadQuestions ? 'Pending' : '${submissionData['scorePercentage']}%',
         'lastUpdated': DateTime.now().toIso8601String(),
       });
 
@@ -515,14 +564,19 @@ class TestsStudentDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // دالة لإعادة تعيين الملف المرفوع
   void resetFileUpload(int questionIndex) {
     if (questionIndex < 0 || questionIndex >= _questions.length) return;
-
+    
     final question = _questions[questionIndex];
     question.uploadedFileUrl = null;
     question.uploadedFileName = null;
-    question.isAnswered = false;
-
+    
+    // تحديث حالة الإجابة بناءً على وجود إجابة نصية
+    if (question.textAnswer == null || question.textAnswer!.isEmpty) {
+      question.isAnswered = false;
+    }
+    
     _updateAllQuestionsAnsweredStatus();
     notifyListeners();
   }

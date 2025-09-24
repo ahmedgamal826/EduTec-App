@@ -1381,13 +1381,13 @@ class AssignmentSubmissionsView extends StatelessWidget {
   final String currentUserName; // Parameter to filter submissions
 
   const AssignmentSubmissionsView({
-    Key? key,
+    super.key,
     required this.adminId,
     required this.assignmentId,
     required this.assignmentTitle,
     required this.courseName,
     required this.currentUserName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1411,7 +1411,7 @@ class AssignmentSubmissionsView extends StatelessWidget {
                   .toList(); // Show only current user's submissions for students
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF0F7FF),
+            backgroundColor: Colors.white,
             appBar: AppBar(
               title: Text(
                 'Submissions for $assignmentTitle',

@@ -1375,8 +1375,7 @@ import 'package:provider/provider.dart';
 class AssignmentsPageStudent extends StatefulWidget {
   final String courseId;
 
-  const AssignmentsPageStudent({Key? key, required this.courseId})
-      : super(key: key);
+  const AssignmentsPageStudent({super.key, required this.courseId});
 
   @override
   State<AssignmentsPageStudent> createState() => _AssignmentsPageStudentState();

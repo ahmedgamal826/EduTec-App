@@ -1714,11 +1714,11 @@ class TestListItem extends StatefulWidget {
   final VoidCallback onViewSubmissions; // Callback لعرض التقديمات
 
   const TestListItem({
-    Key? key,
+    super.key,
     required this.test,
     required this.onTap,
     required this.onViewSubmissions, // المعامل الجديد
-  }) : super(key: key);
+  });
 
   @override
   State<TestListItem> createState() => _TestListItemState();
@@ -1884,18 +1884,18 @@ class _TestListItemState extends State<TestListItem> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: widget.test.isCompleted
-                                  ? Row(
+                                  ? const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(
+                                        Icon(
                                           Icons.check_circle,
                                           color: Colors.white,
                                           size: 16,
                                         ),
-                                        const SizedBox(width: 4),
+                                        SizedBox(width: 4),
                                         Text(
                                           'Completed',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
@@ -2317,7 +2317,7 @@ class _TestListItemState extends State<TestListItem> {
                                           borderRadius:
                                               BorderRadius.circular(8),
                                         ),
-                                        child: Row(
+                                        child: const Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
@@ -2326,7 +2326,7 @@ class _TestListItemState extends State<TestListItem> {
                                               size: 18,
                                               color: AppColors.primaryColor,
                                             ),
-                                            const SizedBox(width: 8),
+                                            SizedBox(width: 8),
                                             Text(
                                               'Open Assignment',
                                               style: TextStyle(

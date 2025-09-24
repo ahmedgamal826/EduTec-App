@@ -10,11 +10,11 @@ class AddQuestionScreen extends StatelessWidget {
   final Function(QuestionModel) onQuestionAdded;
 
   const AddQuestionScreen({
-    Key? key,
+    super.key,
     required this.questionType,
     this.existingQuestion,
     required this.onQuestionAdded,
-  }) : super(key: key);
+  });
 
   void _saveQuestion(BuildContext context, AddQuestionViewModel viewModel) {
     final question = viewModel.saveQuestion();
@@ -77,25 +77,32 @@ class AddQuestionScreen extends StatelessWidget {
                       const Text('Select the correct answer:',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
-                      RadioListTile<String>(
-                        title: const Text('True'),
-                        value: 'True',
-                        activeColor: AppColors.primaryColor,
-                        groupValue: viewModel.correctAnswerTrueFalse,
-                        onChanged: (value) {
-                          print('Selected True');
-                          viewModel.setCorrectAnswerTrueFalse(value);
-                        },
+                      const SizedBox(height: 10),
+                      Card(
+                        elevation: 8,
+                        child: RadioListTile<String>(
+                          title: const Text('True'),
+                          value: 'True',
+                          activeColor: AppColors.primaryColor,
+                          groupValue: viewModel.correctAnswerTrueFalse,
+                          onChanged: (value) {
+                            print('Selected True');
+                            viewModel.setCorrectAnswerTrueFalse(value);
+                          },
+                        ),
                       ),
-                      RadioListTile<String>(
-                        title: const Text('False'),
-                        value: 'False',
-                        activeColor: AppColors.primaryColor,
-                        groupValue: viewModel.correctAnswerTrueFalse,
-                        onChanged: (value) {
-                          print('Selected False');
-                          viewModel.setCorrectAnswerTrueFalse(value);
-                        },
+                      Card(
+                        elevation: 8,
+                        child: RadioListTile<String>(
+                          title: const Text('False'),
+                          value: 'False',
+                          activeColor: AppColors.primaryColor,
+                          groupValue: viewModel.correctAnswerTrueFalse,
+                          onChanged: (value) {
+                            print('Selected False');
+                            viewModel.setCorrectAnswerTrueFalse(value);
+                          },
+                        ),
                       ),
                     ] else if (questionType == 'MCQ') ...[
                       const Text(

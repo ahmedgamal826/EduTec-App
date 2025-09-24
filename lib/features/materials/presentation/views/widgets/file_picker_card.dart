@@ -7,12 +7,12 @@ class FilePickerCard extends StatelessWidget {
   final IconData Function(String fileName) getFileIcon;
 
   const FilePickerCard({
-    Key? key,
+    super.key,
     required this.fileName,
     required this.fileSizeText,
     required this.onTap,
     required this.getFileIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

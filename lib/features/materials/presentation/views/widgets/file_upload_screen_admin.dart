@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/features/materials/presentation/views/widgets/file_picker_card.dart';
 import 'package:attendance_app/features/materials/presentation/views/widgets/upload_file_button.dart';
 import 'package:attendance_app/features/materials/presentation/views/widgets/upload_progress_bar.dart';
@@ -12,7 +13,7 @@ import '../../../cubits/cubit_admin/material_cubit.dart';
 import '../../../models/material_model_admin.dart';
 
 class FileUploadScreenAdmin extends StatefulWidget {
-  const FileUploadScreenAdmin({Key? key}) : super(key: key);
+  const FileUploadScreenAdmin({super.key});
 
   @override
   State<FileUploadScreenAdmin> createState() => _FileUploadScreenAdminState();
@@ -201,21 +202,22 @@ class _FileUploadScreenAdminState extends State<FileUploadScreenAdmin> {
           ),
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF1565C0),
+        backgroundColor: AppColors.primaryColor,
         elevation: 8,
         shadowColor: Colors.black.withOpacity(0.2),
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFE3F2FD),
-              Colors.white,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          color: Colors.white,
+          // gradient: LinearGradient(
+          //   colors: [
+          //     Color(0xFFE3F2FD),
+          //     Colors.white,
+          //   ],
+          //   begin: Alignment.topCenter,
+          //   end: Alignment.bottomCenter,
+          // ),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
