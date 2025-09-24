@@ -1392,12 +1392,12 @@ class StudentQuestionnaireView extends StatelessWidget {
   final HomeQuestionnairesViewModel? homeViewModel;
 
   const StudentQuestionnaireView({
-    Key? key,
+    super.key,
     required this.questionnaireId,
     required this.courseId,
     required this.onSubmit,
     this.homeViewModel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

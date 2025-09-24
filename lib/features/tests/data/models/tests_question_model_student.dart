@@ -134,8 +134,6 @@
 //   });
 // }
 import 'package:attendance_app/features/tests/data/models/tests_question_model_admin.dart';
-import 'package:attendance_app/features/tests/data/models/tests_question_model_student.dart';
-import 'package:flutter/material.dart';
 
 // Define the enum to match the string types used in TestsStudentQuestion
 enum TestsStudentQuestionType {
@@ -157,6 +155,7 @@ class TestsStudentQuestion {
   int? selectedOption;
   String? uploadedFileUrl;
   String? uploadedFileName;
+  String? textAnswer;
   bool? isAnswered;
   bool? isCorrect;
   // Add properties to match TestsAssignmentQuestion
@@ -176,6 +175,7 @@ class TestsStudentQuestion {
     this.selectedOption,
     this.uploadedFileUrl,
     this.uploadedFileName,
+    this.textAnswer,
     this.isAnswered = false,
     this.isCorrect,
     this.hasImage = false,
@@ -213,7 +213,8 @@ class TestsStudentQuestion {
         type == 'TrueFalse') {
       return selectedOption != null;
     } else if (type == 'file' || type == 'Upload File') {
-      return uploadedFileUrl != null && uploadedFileUrl!.isNotEmpty;
+      return (uploadedFileUrl != null && uploadedFileUrl!.isNotEmpty) || 
+             (textAnswer != null && textAnswer!.isNotEmpty);
     }
     return false;
   }

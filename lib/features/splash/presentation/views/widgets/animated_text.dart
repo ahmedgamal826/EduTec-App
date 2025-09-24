@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 class AnimatedText extends StatelessWidget {
   final VoidCallback onFinished;
 
-  const AnimatedText({Key? key, required this.onFinished}) : super(key: key);
+  const AnimatedText({super.key, required this.onFinished});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedTextKit(
       animatedTexts: [
         TyperAnimatedText(
-          'Presentic',
+          'EduTec',
           textStyle: const TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,

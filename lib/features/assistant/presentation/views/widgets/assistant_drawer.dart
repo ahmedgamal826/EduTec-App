@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AssistantDrawer extends StatefulWidget {
-  const AssistantDrawer({Key? key}) : super(key: key);
+  const AssistantDrawer({super.key});
 
   @override
   State<AssistantDrawer> createState() => _AdminDrawerState();
@@ -45,7 +45,7 @@ class _AdminDrawerState extends State<AssistantDrawer> {
                     color:
                         isDarkMode ? Colors.grey[900] : AppColors.primaryColor,
                   ),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const Center(child: CircularProgressIndicator()),
                 );
               }
 
@@ -57,11 +57,13 @@ class _AdminDrawerState extends State<AssistantDrawer> {
                 decoration: BoxDecoration(
                   color: isDarkMode ? Colors.grey[900] : AppColors.primaryColor,
                 ),
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 16),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     CircleAvatar(
-                      radius: 50,
+                      radius: 44,
                       backgroundColor: Colors.white,
                       backgroundImage: (image != null && image.isNotEmpty)
                           ? NetworkImage(image)
@@ -69,16 +71,17 @@ class _AdminDrawerState extends State<AssistantDrawer> {
                       child: (image == null || image.isEmpty)
                           ? const Icon(
                               Icons.person,
-                              size: 50,
+                              size: 44,
                               color: Color(0xff70ACF4),
                             )
                           : null,
                     ),
+                    SizedBox(height: 6),
                     Text(
                       name,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 23,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,

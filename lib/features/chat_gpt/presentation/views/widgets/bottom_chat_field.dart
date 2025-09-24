@@ -38,7 +38,7 @@ class _BottomChatFieldState extends State<BottomChatField>
       );
 
       widget.chatProvider.setFileListImages(listValue: pickImages);
-    } on Exception catch (e) {
+    } on Exception {
       log('e' as num);
     }
   }

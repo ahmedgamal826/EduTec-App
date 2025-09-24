@@ -744,8 +744,7 @@ import '../lecture_attendance_screen.dart';
 class AttendanceAdminBody extends StatefulWidget {
   final String courseId;
 
-  const AttendanceAdminBody({Key? key, required this.courseId})
-      : super(key: key);
+  const AttendanceAdminBody({super.key, required this.courseId});
 
   @override
   State<AttendanceAdminBody> createState() => _AttendanceAdminBodyState();
@@ -918,15 +917,8 @@ class _AttendanceAdminBodyState extends State<AttendanceAdminBody> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.blue[100]!,
-            Colors.white,
-          ],
-        ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -934,23 +926,29 @@ class _AttendanceAdminBodyState extends State<AttendanceAdminBody> {
           children: [
             Container(
               decoration: BoxDecoration(
+                // color: Colors.white,
+                // borderRadius: BorderRadius.circular(8),
+                // border: Border.all(color: Colors.grey.shade300),
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black.withOpacity(0.05),
+                //     blurRadius: 4,
+                //     offset: const Offset(0, 2),
+                //   ),
+                // ],
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
                 cursorColor: AppColors.primaryColor,
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search lecture (name/number)',
-                  prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Colors.grey,
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   suffixIcon: _searchController.text.isNotEmpty
@@ -961,6 +959,8 @@ class _AttendanceAdminBodyState extends State<AttendanceAdminBody> {
                           },
                         )
                       : null,
+                  filled: true, // Enable background fill
+                  fillColor: Colors.grey[200], // Set grey background color
                 ),
               ),
             ),
@@ -1031,7 +1031,7 @@ class _AttendanceAdminBodyState extends State<AttendanceAdminBody> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.blue[300]!,
+              color: AppColors.primaryColor,
               width: 1.5,
             ),
             boxShadow: [

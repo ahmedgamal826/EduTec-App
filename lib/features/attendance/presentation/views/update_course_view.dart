@@ -281,13 +281,13 @@ class UpdateCoursePage extends StatefulWidget {
   final String date;
 
   const UpdateCoursePage({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.courseName,
     required this.courseCode,
     required this.semester,
     required this.date,
-  }) : super(key: key);
+  });
 
   @override
   _UpdateCoursePageState createState() => _UpdateCoursePageState();
@@ -487,7 +487,7 @@ class _UpdateCoursePageState extends State<UpdateCoursePage> {
                   items: ['1 Year', '2 Year', '3 Year', '4 Year']
                       .map((year) => DropdownMenuItem(
                             value: year,
-                            child: Container(
+                            child: SizedBox(
                               width: 100,
                               child: Text(year, textAlign: TextAlign.center),
                             ),

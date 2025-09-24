@@ -12,10 +12,10 @@ class AdminQuestionnaireView extends StatelessWidget {
   final String courseId;
 
   const AdminQuestionnaireView({
-    Key? key,
+    super.key,
     this.initialQuestions = const [],
     required this.courseId,
-  }) : super(key: key);
+  });
 
   void _showQuestionTypeDialog(
       BuildContext context, QuestionnaireViewModel viewModel) {

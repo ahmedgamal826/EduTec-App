@@ -12,14 +12,14 @@ class CircularProgressAdmin extends StatelessWidget {
   final bool isSmallScreen;
 
   const CircularProgressAdmin({
-    Key? key,
+    super.key,
     required this.label,
     required this.percentage,
     required this.color,
     required this.animationValue,
     required this.size,
     this.isSmallScreen = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

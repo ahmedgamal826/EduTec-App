@@ -979,9 +979,6 @@
 //   }
 // }
 
-
-
-
 import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/features/attendance/cubits/cubit_admin/lecture_cubit.dart';
 import 'package:attendance_app/features/attendance/cubits/cubit_admin/lecture_state.dart';
@@ -997,11 +994,11 @@ class UpdateLecturePage extends StatelessWidget {
   final LectureCubit lectureCubit;
 
   const UpdateLecturePage({
-    Key? key,
+    super.key,
     required this.lecture,
     required this.courseId,
     required this.lectureCubit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1017,10 +1014,10 @@ class UpdateLectureContent extends StatefulWidget {
   final String courseId;
 
   const UpdateLectureContent({
-    Key? key,
+    super.key,
     required this.lecture,
     required this.courseId,
-  }) : super(key: key);
+  });
 
   @override
   _UpdateLectureContentState createState() => _UpdateLectureContentState();
@@ -1080,11 +1077,16 @@ class _UpdateLectureContentState extends State<UpdateLectureContent> {
   }
 
   void _pickDate() async {
+    DateTime currentDate = DateTime.now();
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(3000),
+      selectableDayPredicate: (DateTime date) {
+        return date.isAfter(currentDate.subtract(const Duration(days: 1))) ||
+            date.isAtSameMomentAs(currentDate);
+      },
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -1111,10 +1113,75 @@ class _UpdateLectureContentState extends State<UpdateLectureContent> {
     }
   }
 
+  // void _pickDate() async {
+  //   DateTime? pickedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(3000),
+  //     builder: (context, child) {
+  //       return Theme(
+  //         data: Theme.of(context).copyWith(
+  //           colorScheme: const ColorScheme.light(
+  //             primary: AppColors.primaryColor,
+  //             onPrimary: Colors.white,
+  //             onSurface: Colors.black,
+  //           ),
+  //           textButtonTheme: TextButtonThemeData(
+  //             style: TextButton.styleFrom(
+  //               foregroundColor: AppColors.primaryColor,
+  //             ),
+  //           ),
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
+
+  //   if (pickedDate != null) {
+  //     setState(() {
+  //       _dateController.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+  //     });
+  //   }
+  // }
+
+  // void _pickTime() async {
+  //   TimeOfDay? pickedTime = await showTimePicker(
+  //     context: context,
+  //     initialTime: TimeOfDay.now(),
+  //     builder: (context, child) {
+  //       return Theme(
+  //         data: Theme.of(context).copyWith(
+  //           colorScheme: const ColorScheme.light(
+  //             primary: AppColors.primaryColor,
+  //             onPrimary: Colors.white,
+  //             onSurface: Colors.black,
+  //           ),
+  //           textButtonTheme: TextButtonThemeData(
+  //             style: TextButton.styleFrom(
+  //               foregroundColor: AppColors.primaryColor,
+  //             ),
+  //           ),
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
+
+  //   if (pickedTime != null) {
+  //     setState(() {
+  //       _timeController.text = pickedTime.format(context);
+  //     });
+  //   }
+  // }
+
   void _pickTime() async {
+    DateTime currentDateTime = DateTime.now();
+    TimeOfDay currentTime = TimeOfDay.fromDateTime(currentDateTime);
+    TimeOfDay initialTime = currentTime;
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: initialTime,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -1135,8 +1202,27 @@ class _UpdateLectureContentState extends State<UpdateLectureContent> {
     );
 
     if (pickedTime != null) {
+      // Convert pickedTime and currentTime to 24-hour format for comparison
+      int pickedHour24 = pickedTime.hour;
+      int currentHour24 = currentTime.hour;
+      if (pickedTime.period == DayPeriod.pm && pickedTime.hour != 12)
+        pickedHour24 += 12;
+      if (pickedTime.period == DayPeriod.am && pickedTime.hour == 12)
+        pickedHour24 = 0;
+      if (currentTime.period == DayPeriod.pm && currentTime.hour != 12)
+        currentHour24 += 12;
+      if (currentTime.period == DayPeriod.am && currentTime.hour == 12)
+        currentHour24 = 0;
+
+      int pickedMinutes = pickedHour24 * 60 + pickedTime.minute;
+      int currentMinutes = currentHour24 * 60 + currentTime.minute;
+
+      // Reset to current time if picked time is earlier
+      if (pickedMinutes < currentMinutes) {
+        pickedTime = currentTime;
+      }
       setState(() {
-        _timeController.text = pickedTime.format(context);
+        _timeController.text = pickedTime!.format(context);
       });
     }
   }
@@ -1330,7 +1416,8 @@ class _UpdateLectureContentState extends State<UpdateLectureContent> {
                     labelStyle: const TextStyle(color: Colors.black),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey, width: 1),
+                      borderSide:
+                          const BorderSide(color: Colors.grey, width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -1486,8 +1573,7 @@ class _UpdateLectureContentState extends State<UpdateLectureContent> {
                     _buildDropdown(
                       value: endMinute,
                       items: List.generate(60, (index) => index),
-                      onChanged: (value) =>
-                          setState(() => endMinute = value!),
+                      onChanged: (value) => setState(() => endMinute = value!),
                       width: 80,
                       format: (value) => value.toString().padLeft(2, '0'),
                     ),
@@ -1632,7 +1718,8 @@ class _UpdateLectureContentState extends State<UpdateLectureContent> {
           }).toList(),
           onChanged: onChanged,
           isExpanded: true,
-          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primaryColor),
+          icon:
+              const Icon(Icons.arrow_drop_down, color: AppColors.primaryColor),
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
         ),

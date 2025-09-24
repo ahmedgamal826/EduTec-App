@@ -1,12 +1,7 @@
 import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/features/auth/presentations/views/widget/auth_functions.dart';
 import 'package:attendance_app/features/auth/presentations/views/widget/custom_button.dart';
-import 'package:attendance_app/features/auth/presentations/views/widget/custom_text_button.dart';
 import 'package:attendance_app/features/auth/presentations/views/widget/custom_text_filed.dart';
-import 'package:attendance_app/features/auth/presentations/views/widget/custom_text_textButton..dart';
-import 'package:attendance_app/features/auth/presentations/views/widget/show_snack_bar.dart';
-import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -26,12 +21,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void handleSignIn() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        signIn(
-            context: context,
-            emailController: emailController,
-            passwordController: passwordController);
-      });
+      signIn(
+          context: context,
+          emailController: emailController,
+          passwordController: passwordController);
     }
   }
 
@@ -43,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
       key: _formKey,
       child: SafeArea(
         child: Scaffold(
-          backgroundColor: AppColors.primaryColor,
+          backgroundColor: Colors.white,
           body: Center(
             child: SingleChildScrollView(
               child: Column(
@@ -52,10 +45,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const SizedBox(height: 20),
 
-                  const Center(
-                    child: Text(
-                      'Sign In',
-                      style: TextStyle(fontSize: 50, color: Colors.white),
+                  // const Center(
+                  //   child: Text(
+                  //     'Sign In',
+                  //     style: TextStyle(
+                  //       fontSize: 50,
+                  //       color: Colors.black,
+                  //     ),
+                  //   ),
+                  // ),
+                  Center(
+                    child: SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.4,
+                      height: MediaQuery.sizeOf(context).height * 0.2,
+                      child: const CircleAvatar(
+                        backgroundImage: AssetImage(
+                          'assets/images/splash_logo.jpg',
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(
@@ -66,17 +73,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Email',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
+                        // Text(
+                        //   'Email',
+                        //   style: TextStyle(
+                        //     fontSize: 22,
+                        //     fontWeight: FontWeight.bold,
+                        //     color: Colors.white,
+                        //   ),
+                        // ),
+                        // SizedBox(
+                        //   height: 10,
+                        // ),
                       ],
                     ),
                   ),
@@ -88,19 +95,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(
                     height: 30,
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 20),
-                    child: Text(
-                      'Password',
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  // const Padding(
+                  //   padding: EdgeInsets.only(left: 20),
+                  //   child: Text(
+                  //     'Password',
+                  //     style: TextStyle(
+                  //         fontSize: 22,
+                  //         fontWeight: FontWeight.bold,
+                  //         color: Colors.white),
+                  //   ),
+                  // ),
+                  // const SizedBox(
+                  //   height: 10,
+                  // ),
                   CustomTextFiled(
                     hintText: 'Enter your Password',
                     validatorMessage: 'Password is required',
@@ -141,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       child: CustomButton(
-                        buttonText: 'Login',
+                        buttonText: 'Log In',
                         onPressed: handleSignIn,
                       ),
                     ),

@@ -92,7 +92,7 @@ class _SubjectScreenState extends State<SubjectScreen>
   void navigateBasedOnRole(BuildContext context, String buttonName) {
     if (role == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('جاري تحميل بيانات المستخدم...')),
+        const SnackBar(content: Text('Loading user data...')),
       );
       return;
     }
@@ -106,9 +106,7 @@ class _SubjectScreenState extends State<SubjectScreen>
             ? AnalysisViewAdmin(
                 courseId: widget.courseId,
               )
-            : AnalysisViewStudent(
-                courseId: widget.courseId,
-              );
+            : AnalysisViewStudent(courseId: widget.courseId);
         break;
       case 'Attendance':
         destination = role == 'Admin'
@@ -190,7 +188,8 @@ class _SubjectScreenState extends State<SubjectScreen>
             ))
           : Container(
               height: max(1, 1000),
-              color: const Color(0xFFE3F2FD),
+              // color: const Color(0xFFE3F2FD),
+              color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.all(18.0),
                 child: SingleChildScrollView(
@@ -203,22 +202,13 @@ class _SubjectScreenState extends State<SubjectScreen>
                         delay: const Duration(milliseconds: 100),
                         child: _buildRoundedButton(
                           context,
-                          'Analysis',
-                          () => navigateBasedOnRole(context, 'Analysis'),
-                        ),
-                      ),
-                      FadeInUp(
-                        duration: const Duration(milliseconds: 500),
-                        delay: const Duration(milliseconds: 300),
-                        child: _buildRoundedButton(
-                          context,
                           'Attendance',
                           () => navigateBasedOnRole(context, 'Attendance'),
                         ),
                       ),
                       FadeInUp(
                         duration: const Duration(milliseconds: 500),
-                        delay: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 300),
                         child: _buildRoundedButton(
                           context,
                           'Materials',
@@ -227,7 +217,7 @@ class _SubjectScreenState extends State<SubjectScreen>
                       ),
                       FadeInUp(
                         duration: const Duration(milliseconds: 500),
-                        delay: const Duration(milliseconds: 700),
+                        delay: const Duration(milliseconds: 500),
                         child: _buildRoundedButton(
                           context,
                           'Assignments',
@@ -236,11 +226,20 @@ class _SubjectScreenState extends State<SubjectScreen>
                       ),
                       FadeInUp(
                         duration: const Duration(milliseconds: 500),
-                        delay: const Duration(milliseconds: 900),
+                        delay: const Duration(milliseconds: 700),
                         child: _buildRoundedButton(
                           context,
                           'Test',
                           () => navigateBasedOnRole(context, 'Test'),
+                        ),
+                      ),
+                      FadeInUp(
+                        duration: const Duration(milliseconds: 500),
+                        delay: const Duration(milliseconds: 900),
+                        child: _buildRoundedButton(
+                          context,
+                          'Analysis',
+                          () => navigateBasedOnRole(context, 'Analysis'),
                         ),
                       ),
                       FadeInUp(

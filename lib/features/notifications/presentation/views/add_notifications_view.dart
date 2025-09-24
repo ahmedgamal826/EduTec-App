@@ -6,6 +6,8 @@ import 'package:attendance_app/features/notifications/presentation/views/widgets
 import 'package:flutter/material.dart';
 
 class AddNotificationsView extends StatefulWidget {
+  const AddNotificationsView({super.key});
+
   @override
   _AddNotificationsViewState createState() => _AddNotificationsViewState();
 }

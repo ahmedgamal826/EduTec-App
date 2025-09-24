@@ -10,9 +10,9 @@ class AttendanceScreenBodyView extends StatefulWidget {
   final String courseId;
 
   const AttendanceScreenBodyView({
-    Key? key,
+    super.key,
     required this.courseId,
-  }) : super(key: key);
+  });
 
   @override
   State<AttendanceScreenBodyView> createState() =>
@@ -53,22 +53,30 @@ class _AttendanceScreenBodyViewState extends State<AttendanceScreenBodyView> {
             // Search Bar
             Container(
               decoration: BoxDecoration(
+                // borderRadius: BorderRadius.circular(12),
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black.withOpacity(0.05),
+                //     blurRadius: 4,
+                //     offset: const Offset(0, 2),
+                //   ),
+                // ],
+
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               child: TextField(
                 cursorColor: AppColors.primaryColor,
                 controller: _searchController,
                 decoration: InputDecoration(
+                  fillColor: Colors.grey[200],
+                  filled: true,
                   hintText: 'Search lectures...',
-                  prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+                  hintStyle: TextStyle(color: Colors.grey),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.grey,
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   suffixIcon: _searchController.text.isNotEmpty

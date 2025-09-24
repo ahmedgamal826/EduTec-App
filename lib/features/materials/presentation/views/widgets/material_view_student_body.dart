@@ -10,10 +10,10 @@ class MaterialsStudentBodyView extends StatelessWidget {
   final int lectureNumber;
 
   const MaterialsStudentBodyView({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.lectureNumber,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +35,7 @@ class MaterialsStudentBodyView extends StatelessWidget {
         elevation: 4,
       ),
       body: Container(
-        color: const Color(0xFFE3F2FD),
+        color: Colors.white,
         child: BlocConsumer<StudentMaterialCubit, StudentMaterialState>(
           listener: (context, state) {
             if (state is MaterialError) {

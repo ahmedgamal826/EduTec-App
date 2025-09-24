@@ -79,7 +79,7 @@ class RoleSelection extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final bool enabled; // إضافة الخاصية enabled
 
-  RoleSelection({
+  const RoleSelection({super.key, 
     required String role,
     required this.onChanged,
     this.enabled = true, // افتراضيًا سيكون ممكن التفاعل
@@ -123,7 +123,7 @@ class RoleSelection extends StatelessWidget {
             color: Colors.black,
           ),
         ),
-        SizedBox(width: 20),
+        const SizedBox(width: 20),
         // Radio button for Student
         Radio<String>(
           value: "Student",

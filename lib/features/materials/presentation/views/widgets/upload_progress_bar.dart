@@ -5,10 +5,10 @@ class UploadProgressBar extends StatelessWidget {
   final double uploadProgress;
 
   const UploadProgressBar({
-    Key? key,
+    super.key,
     required this.isUploading,
     required this.uploadProgress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

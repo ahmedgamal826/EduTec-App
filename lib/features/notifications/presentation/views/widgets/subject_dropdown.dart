@@ -7,11 +7,11 @@ class SubjectDropdown extends StatefulWidget {
   final Function(String?) onChanged;
 
   const SubjectDropdown({
-    Key? key,
+    super.key,
     required this.subjects,
     this.selectedSubject,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   _SubjectDropdownState createState() => _SubjectDropdownState();
@@ -71,7 +71,7 @@ class _SubjectDropdownState extends State<SubjectDropdown> {
         items: widget.subjects
             .map((subject) => DropdownMenuItem(
                   value: subject,
-                  child: Container(
+                  child: SizedBox(
                     width: 100,
                     child: Text(subject, textAlign: TextAlign.center),
                   ),

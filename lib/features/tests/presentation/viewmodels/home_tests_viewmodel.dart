@@ -1,9 +1,12 @@
 import 'package:attendance_app/features/tests/data/models/tests_model_admin.dart';
 import 'package:attendance_app/features/tests/data/models/tests_question_model_admin.dart';
+import 'package:attendance_app/features/notifications/data/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TestsHomeViewModel extends ChangeNotifier {
   List<TestsAssignmentModel> _assignments = [];
@@ -17,6 +20,7 @@ class TestsHomeViewModel extends ChangeNotifier {
   final String courseId;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   List<TestsAssignmentModel> get assignments => _assignments;
   int? get selectedIndex => _selectedIndex;
@@ -145,15 +149,162 @@ class TestsHomeViewModel extends ChangeNotifier {
       _successMessage = 'Test added successfully';
       notifyListeners();
 
+      // Send notification to all students about new test
+      await _sendTestNotification(name, examDate, startTime);
+
       return newAssignment;
     } catch (e) {
       _errorMessage = 'Error adding test: $e';
       print(_errorMessage);
       notifyListeners();
-      throw e;
+      rethrow;
     } finally {
       _isProcessing = false;
       notifyListeners();
+    }
+  }
+
+  // Send notification to all students about new test
+  Future<void> _sendTestNotification(String testName, String? examDate, String? startTime) async {
+    try {
+      // Create notification details with exam date and time
+      String description = 'New test added: $testName';
+      if (examDate != null) {
+        description += ' (Date: $examDate';
+        if (startTime != null) {
+          description += ', Start time: $startTime';
+        }
+        description += ')';
+      }
+      
+      // Create a specific test notification
+      // Get all student IDs first
+      final studentsSnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'student')
+          .get();
+      
+      final studentIds = studentsSnapshot.docs.map((doc) => doc.id).toList();
+      
+      // Create a single notification with all student recipients
+      await _notificationService.createNotification(
+        subject: courseName,
+        description: description,
+        courseId: courseId,
+        type: 'test',
+        deadline: examDate,
+        recipients: studentIds,
+        isRead: false,
+      );
+      
+      // Send FCM push notification to all students
+      await _sendPushNotificationToAllStudents(
+        title: courseName,
+        body: description,
+        type: 'test',
+        courseId: courseId,
+        deadline: examDate,
+      );
+      
+      print('Successfully sent test notification to all students');
+    } catch (e) {
+      print('Error sending test notification: $e');
+      // We don't want to stop the process if notification fails
+    }
+  }
+  
+  // Send FCM push notification to all students
+  Future<void> _sendPushNotificationToAllStudents({
+    required String title,
+    required String body,
+    required String type,
+    String? courseId,
+    String? deadline,
+  }) async {
+    try {
+      // Get FCM tokens for all students
+      final studentsSnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'student')
+          .get();
+      
+      // Extract FCM tokens
+      final List<String> fcmTokens = [];
+      for (var doc in studentsSnapshot.docs) {
+        final userData = doc.data();
+        if (userData.containsKey('fcmToken') && userData['fcmToken'] != null) {
+          fcmTokens.add(userData['fcmToken']);
+        }
+      }
+      
+      if (fcmTokens.isEmpty) {
+        print('No FCM tokens found for students');
+        return;
+      }
+      
+      // Firebase Cloud Messaging API
+      const String fcmUrl = 'https://fcm.googleapis.com/fcm/send';
+      
+      // Use your Firebase Cloud Messaging server key
+      const String serverKey = 'AAAAfPZjuO0:APA91bGeGvDVdh9NQsMUd9Nq4LlCgmg_U-P4QmKFBGGf5SQUkdAo3XBX1xEcLLYWy2bSvGEGPj-OspZPvbDUTnvE77fLHv1w_YKG3UdF5aeMwrUhEijgFEVCbFiNd7RVIz8VUt1Yei32';
+      
+      // Send notification to each token
+      for (String token in fcmTokens) {
+        final response = await http.post(
+          Uri.parse(fcmUrl),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'key=$serverKey',
+          },
+          body: jsonEncode(<String, dynamic>{
+            'to': token,
+            'notification': {
+              'title': title,
+              'body': body,
+              'sound': 'default',
+              'android_channel_id': 'high_importance_channel',
+              'badge': '1',
+            },
+            'data': {
+              'type': type,
+              'courseId': courseId,
+              'deadline': deadline,
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            },
+            'android': {
+              'priority': 'high',
+              'notification': {
+                'notification_priority': 'PRIORITY_MAX',
+                'default_sound': true,
+                'default_vibrate_timings': true,
+                'default_light_settings': true,
+                'visibility': 'PUBLIC',
+                'channel_id': 'high_importance_channel',
+              },
+            },
+            'apns': {
+              'payload': {
+                'aps': {
+                  'sound': 'default',
+                  'badge': 1,
+                  'content-available': 1,
+                  'mutable-content': 1,
+                }
+              }
+            },
+            'priority': 'high',
+            'content_available': true,
+          }),
+        );
+        
+        if (response.statusCode == 200) {
+          print('Successfully sent FCM notification');
+        } else {
+          print('Failed to send FCM notification: ${response.body}');
+        }
+      }
+    } catch (e) {
+      print('Error sending FCM notification: $e');
     }
   }
 
@@ -196,7 +347,7 @@ class TestsHomeViewModel extends ChangeNotifier {
       _errorMessage = 'Error updating test: $e';
       print(_errorMessage);
       notifyListeners();
-      throw e;
+      rethrow;
     } finally {
       _isProcessing = false;
       notifyListeners();
@@ -276,7 +427,7 @@ class TestsHomeViewModel extends ChangeNotifier {
       _errorMessage = 'Error updating test details: $e';
       print(_errorMessage);
       notifyListeners();
-      throw e;
+      rethrow;
     } finally {
       _isProcessing = false;
       notifyListeners();

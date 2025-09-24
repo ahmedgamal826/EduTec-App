@@ -11,6 +11,7 @@ class TestsStudentResponse {
   final String? teacherComment;
   final String? selectedAnswerText;
   final String? correctAnswerText;
+  final String? textAnswer;
 
   TestsStudentResponse({
     required this.questionId,
@@ -23,6 +24,7 @@ class TestsStudentResponse {
     this.teacherComment,
     this.selectedAnswerText,
     this.correctAnswerText,
+    this.textAnswer,
   });
 
   void updateIsCorrect(bool value) {
@@ -41,6 +43,7 @@ class TestsStudentResponse {
       'teacherComment': teacherComment,
       'selectedAnswerText': selectedAnswerText,
       'correctAnswerText': correctAnswerText,
+      'textAnswer': textAnswer,
     };
   }
 
@@ -56,6 +59,7 @@ class TestsStudentResponse {
       teacherComment: map['teacherComment'] as String?,
       selectedAnswerText: map['selectedAnswerText'] as String?,
       correctAnswerText: map['correctAnswerText'] as String?,
+      textAnswer: map['textAnswer'] as String?,
     );
   }
 }

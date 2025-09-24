@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:attendance_app/features/notifications/data/services/notification_service.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
 
 class AttendanceRepository {
+  final NotificationService _notificationService = NotificationService();
+
   Stream<QuerySnapshot> getAttendanceStream(
       String courseId, int lectureNumber) {
     return FirebaseFirestore.instance
@@ -76,6 +80,10 @@ class AttendanceRepository {
         String currentDate = DateTime.now().toString().split(' ')[0];
         String currentTime =
             DateTime.now().toString().split(' ')[1].substring(0, 8);
+            
+        // Get lecture name for notification
+        var lectureData = lectureDoc.data() as Map<String, dynamic>;
+        String lectureName = lectureData['name'] ?? 'Lecture $lectureNumber';
 
         await lectureDoc.reference.collection('attendance').doc(studentId).set({
           'name': name,
@@ -88,9 +96,74 @@ class AttendanceRepository {
           'isStarred': false,
           'bonusCount': 0, // إضافة حقل bonusCount بقيمة افتراضية 0
         });
+        
+        // Send attendance notification to student
+        await _sendAttendanceNotification(
+          studentId: studentId, 
+          studentName: name,
+          courseId: courseId,
+          lectureName: lectureName,
+          lectureNumber: lectureNumber,
+          date: currentDate,
+          time: currentTime
+        );
       }
     } catch (e) {
       throw Exception('Error adding student: $e');
+    }
+  }
+
+  // إرسال إشعار للطالب بتسجيل حضوره
+  Future<void> _sendAttendanceNotification({
+    required String studentId,
+    required String studentName,
+    required String courseId,
+    required String lectureName,
+    required int lectureNumber,
+    required String date,
+    required String time,
+  }) async {
+    try {
+      // Get course name
+      DocumentSnapshot courseDoc = await FirebaseFirestore.instance
+          .collection('Courses')
+          .doc(courseId)
+          .get();
+      
+      String courseName = 'Course';
+      if (courseDoc.exists) {
+        final courseData = courseDoc.data() as Map<String, dynamic>;
+        courseName = courseData['courseName'] ?? courseName;
+      }
+      
+      // Format date for better readability
+      final DateTime parsedDate = DateTime.parse(date);
+      final String formattedDate = DateFormat('EEEE, MMMM d, yyyy').format(parsedDate);
+      
+      // Create attendance notification using both methods for better coverage
+      // Method 1: Using the existing createAttendanceNotification
+      await _notificationService.createAttendanceNotification(
+        courseName: courseName,
+        studentName: studentName,
+        lectureName: '$lectureName (Lecture $lectureNumber)',
+        date: formattedDate,
+        time: time,
+        courseId: courseId,
+        studentId: studentId,
+      );
+      
+      // Method 2: Using the new createStudentAttendanceRecordedNotification
+      await _notificationService.createStudentAttendanceRecordedNotification(
+        studentId: studentId,
+        courseId: courseId,
+        lectureName: '$lectureName (Lecture $lectureNumber)',
+        courseName: courseName,
+      );
+      
+      print('Attendance notification sent to student: $studentName');
+    } catch (e) {
+      // Just log the error but don't throw - attendance should be recorded even if notification fails
+      print('Error sending attendance notification: $e');
     }
   }
 

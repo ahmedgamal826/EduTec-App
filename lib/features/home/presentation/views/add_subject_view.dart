@@ -462,6 +462,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // استيراد Firebase Auth
 
 class AddSubjectPage extends StatefulWidget {
+  const AddSubjectPage({super.key});
+
   @override
   _AddSubjectPageState createState() => _AddSubjectPageState();
 }
@@ -681,7 +683,7 @@ class _AddSubjectPageState extends State<AddSubjectPage> {
                   items: ['1 Year', '2 Year', '3 Year', '4 Year']
                       .map((year) => DropdownMenuItem(
                             value: year,
-                            child: Container(
+                            child: SizedBox(
                               width: 100,
                               child: Text(year, textAlign: TextAlign.center),
                             ),

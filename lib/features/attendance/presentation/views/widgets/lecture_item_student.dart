@@ -5,9 +5,9 @@ class LectureItemStudent extends StatelessWidget {
   final StudentLectureModel lecture;
 
   const LectureItemStudent({
-    Key? key,
+    super.key,
     required this.lecture,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -11,7 +11,7 @@ class CourseCard extends StatelessWidget {
   final void Function(BuildContext context) onMorePressed;
 
   const CourseCard({
-    Key? key,
+    super.key,
     required this.cardHeight,
     required this.fontSizeTitle,
     required this.fontSizeSubtitle,
@@ -20,7 +20,7 @@ class CourseCard extends StatelessWidget {
     required this.semester,
     required this.date,
     required this.onMorePressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

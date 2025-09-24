@@ -347,7 +347,7 @@ import 'package:provider/provider.dart';
 class TestsPageStudent extends StatefulWidget {
   final String courseId;
 
-  const TestsPageStudent({Key? key, required this.courseId}) : super(key: key);
+  const TestsPageStudent({super.key, required this.courseId});
 
   @override
   State<TestsPageStudent> createState() => _TestsPageStudentState();

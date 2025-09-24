@@ -11,12 +11,12 @@ class StudentAnswersView extends StatelessWidget {
   final String studentName;
 
   const StudentAnswersView({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.questionnaireId,
     required this.studentUid,
     required this.studentName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +130,7 @@ class StudentAnswersView extends StatelessWidget {
                                 AppColors.primaryColor.withOpacity(0.1),
                             child: Text(
                               '${index + 1}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppColors.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -172,7 +172,7 @@ class StudentAnswersView extends StatelessWidget {
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.reply,
                                         size: 18,
                                         color: AppColors.primaryColor,

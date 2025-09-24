@@ -12,8 +12,7 @@ import '../../data/models/question_model.dart';
 class HomeQuestionnairesView extends StatelessWidget {
   final String courseId;
 
-  const HomeQuestionnairesView({Key? key, required this.courseId})
-      : super(key: key);
+  const HomeQuestionnairesView({super.key, required this.courseId});
 
   void _deleteQuestionnaire(
       BuildContext context, HomeQuestionnairesViewModel viewModel, int index) {

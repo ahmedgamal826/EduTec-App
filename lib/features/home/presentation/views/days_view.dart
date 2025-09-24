@@ -422,7 +422,7 @@ class DaysScreen extends StatelessWidget {
   final String month;
   final int daysInMonth;
 
-  DaysScreen({
+  const DaysScreen({super.key, 
     required this.month,
     required this.daysInMonth,
   });

@@ -1,6 +1,6 @@
 {
-    "name": "attendance_app",
-    "short_name": "attendance_app",
+    "name": "attendance",
+    "short_name": "attendance",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

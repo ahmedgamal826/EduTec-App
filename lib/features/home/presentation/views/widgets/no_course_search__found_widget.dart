@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NoCourseSearchFoundWidget extends StatelessWidget {
-  const NoCourseSearchFoundWidget({Key? key}) : super(key: key);
+  const NoCourseSearchFoundWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

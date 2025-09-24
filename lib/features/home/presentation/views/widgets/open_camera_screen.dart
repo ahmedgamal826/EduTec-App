@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class OpenCameraScreen extends StatelessWidget {
-  final String scriptPath = "assets/open_camera.py"; // مسار ملف الكاميرا
+  final String scriptPath = "assets/open_camera.py";
+
+  const OpenCameraScreen({super.key}); // مسار ملف الكاميرا
 
   void runPythonScript(String mode) async {
     try {
@@ -23,19 +25,19 @@ class OpenCameraScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Attendance System")),
+      appBar: AppBar(title: const Text("Attendance System")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: () => runPythonScript("check-in"),
-              child: Text("Check In"),
+              child: const Text("Check In"),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => runPythonScript("check-out"),
-              child: Text("Check Out"),
+              child: const Text("Check Out"),
             ),
           ],
         ),

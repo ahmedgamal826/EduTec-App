@@ -5,6 +5,7 @@ import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/core/widgets/show_animated_dialog.dart';
 import 'package:attendance_app/features/auth/presentations/views/widget/show_snack_bar.dart';
 import 'package:attendance_app/features/chat_gpt/presentation/manager/Providers/profile_provider.dart';
+import 'package:attendance_app/features/chat_gpt/presentation/views/chat_gpt_home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,12 +26,20 @@ class ChatHistoryCard extends StatelessWidget {
         // Navigate to chat home view when tapped
         final chatProvider = context.read<ChatProvider>();
 
+        // Load the chat history first
         chatProvider.prepareChatRoom(
             chatId: chatHistory.chatId, newChat: false);
 
-        chatProvider.setCurrentIndex(newCurrentIndex: 1);
-
-        Navigator.pop(context);
+        // Navigate directly to the chat screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider.value(
+              value: chatProvider, // Pass the same instance of ChatProvider
+              child: const ChatGPTHomeView(),
+            ),
+          ),
+        );
       },
       onLongPress: () {
         // Show dialog to delete chat history

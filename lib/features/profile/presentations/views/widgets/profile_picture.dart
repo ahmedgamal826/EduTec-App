@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ProfilePicture extends StatefulWidget {
   final String imageUrl;
 
-  const ProfilePicture({required this.imageUrl});
+  const ProfilePicture({super.key, required this.imageUrl});
 
   @override
   State<ProfilePicture> createState() => ProfilePictureState();

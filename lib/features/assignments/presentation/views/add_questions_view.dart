@@ -12,11 +12,11 @@ class AddQuestionScreen extends StatelessWidget {
   final Function(QuestionModel) onQuestionAdded;
 
   const AddQuestionScreen({
-    Key? key,
+    super.key,
     required this.questionType,
     this.existingQuestion,
     required this.onQuestionAdded,
-  }) : super(key: key);
+  });
 
   void _saveQuestion(BuildContext context, AddQuestionViewModel viewModel) {
     final question = viewModel.saveQuestion();
@@ -38,17 +38,36 @@ class AddQuestionScreen extends StatelessWidget {
 
     // Extract the filename from a Firebase Storage URL
     if (fileUrl.contains('firebasestorage.googleapis.com')) {
-      // For URLs with timestamp pattern
-      RegExp timestampFilenameRegex = RegExp(r'\/(\d+_[^?]+)');
-      var timestampMatches = timestampFilenameRegex.firstMatch(fileUrl);
-      if (timestampMatches != null && timestampMatches.group(1) != null) {
-        fileName = Uri.decodeFull(timestampMatches.group(1)!);
-      } else {
-        // Try basic filename extraction
-        fileName = path.basename(Uri.decodeFull(fileUrl.split('?').first));
+      try {
+        // Para URLs con patrón de marca de tiempo
+        RegExp timestampFilenameRegex = RegExp(r'\/(\d+_[^?]+)');
+        var timestampMatches = timestampFilenameRegex.firstMatch(fileUrl);
+        if (timestampMatches != null && timestampMatches.group(1) != null) {
+          String extracted = timestampMatches.group(1)!;
+          // Manejar la decodificación de manera segura
+          try {
+            fileName = Uri.decodeFull(extracted);
+          } catch (e) {
+            // Si falla la decodificación, usar el valor sin decodificar
+            fileName = extracted;
+          }
+        } else {
+          // Intentar extracción básica de nombre de archivo
+          String basePath = fileUrl.split('?').first;
+          fileName = path.basename(basePath);
+        }
+      } catch (e) {
+        // En caso de error, usar un nombre genérico
+        fileName = 'uploaded_file';
+        print('Error extracting filename from URL: $e');
       }
     } else {
-      fileName = path.basename(Uri.decodeFull(fileUrl));
+      try {
+        fileName = path.basename(fileUrl);
+      } catch (e) {
+        fileName = 'file';
+        print('Error extracting local filename: $e');
+      }
     }
 
     final extension = path.extension(fileName).toLowerCase();
@@ -129,7 +148,7 @@ class AddQuestionScreen extends StatelessWidget {
                       size: 32,
                     ),
                   ),
-                  Container(
+                  SizedBox(
                     width: MediaQuery.of(context).size.width - 100,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +177,7 @@ class AddQuestionScreen extends StatelessWidget {
                               ),
                               child: Text(
                                 extension.toUpperCase().replaceFirst('.', ''),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.primaryColor,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -290,29 +309,63 @@ class AddQuestionScreen extends StatelessWidget {
                               print('Question text changed: $value'),
                         ),
                         const SizedBox(height: 20),
+                        // if (questionType == 'TrueFalse') ...[
+                        //   const Text('Select the correct answer:',
+                        //       style: TextStyle(
+                        //           fontSize: 18, fontWeight: FontWeight.bold)),
+                        //   RadioListTile<String>(
+                        //     title: const Text('True'),
+                        //     value: 'True',
+                        //     activeColor: AppColors.primaryColor,
+                        //     groupValue: viewModel.correctAnswerTrueFalse,
+                        //     onChanged: (value) {
+                        //       print('Selected True');
+                        //       viewModel.setCorrectAnswerTrueFalse(value);
+                        //     },
+                        //   ),
+                        //   RadioListTile<String>(
+                        //     title: const Text('False'),
+                        //     value: 'False',
+                        //     activeColor: AppColors.primaryColor,
+                        //     groupValue: viewModel.correctAnswerTrueFalse,
+                        //     onChanged: (value) {
+                        //       print('Selected False');
+                        //       viewModel.setCorrectAnswerTrueFalse(value);
+                        //     },
+                        //   ),
+                        // ]
+
                         if (questionType == 'TrueFalse') ...[
                           const Text('Select the correct answer:',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold)),
-                          RadioListTile<String>(
-                            title: const Text('True'),
-                            value: 'True',
-                            activeColor: AppColors.primaryColor,
-                            groupValue: viewModel.correctAnswerTrueFalse,
-                            onChanged: (value) {
-                              print('Selected True');
-                              viewModel.setCorrectAnswerTrueFalse(value);
-                            },
+                          const SizedBox(height: 10),
+                          Card(
+                            elevation: 8,
+                            child: RadioListTile<String>(
+                              title: const Text('True'),
+                              value: 'True',
+                              activeColor: AppColors.primaryColor,
+                              groupValue: viewModel.correctAnswerTrueFalse,
+                              onChanged: (value) {
+                                print('Selected True');
+                                viewModel.setCorrectAnswerTrueFalse(value);
+                              },
+                            ),
                           ),
-                          RadioListTile<String>(
-                            title: const Text('False'),
-                            value: 'False',
-                            activeColor: AppColors.primaryColor,
-                            groupValue: viewModel.correctAnswerTrueFalse,
-                            onChanged: (value) {
-                              print('Selected False');
-                              viewModel.setCorrectAnswerTrueFalse(value);
-                            },
+                          const SizedBox(height: 10),
+                          Card(
+                            elevation: 8,
+                            child: RadioListTile<String>(
+                              title: const Text('False'),
+                              value: 'False',
+                              activeColor: AppColors.primaryColor,
+                              groupValue: viewModel.correctAnswerTrueFalse,
+                              onChanged: (value) {
+                                print('Selected False');
+                                viewModel.setCorrectAnswerTrueFalse(value);
+                              },
+                            ),
                           ),
                         ] else if (questionType == 'MCQ') ...[
                           const Text(
@@ -492,17 +545,17 @@ class AddQuestionScreen extends StatelessWidget {
                                           border: Border.all(
                                               color: Colors.green.shade300),
                                         ),
-                                        child: Row(
+                                        child: const Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.visibility,
                                               color: Colors.green,
                                               size: 16,
                                             ),
-                                            const SizedBox(width: 8),
-                                            const Text(
+                                            SizedBox(width: 8),
+                                            Text(
                                               'Tap to view file',
                                               style: TextStyle(
                                                 color: Colors.green,
@@ -779,16 +832,16 @@ class AddQuestionScreen extends StatelessWidget {
                         0) // Only show for initial loading
                   Container(
                     color: Colors.black.withOpacity(0.5),
-                    child: Center(
+                    child: const Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const CircularProgressIndicator(
+                          CircularProgressIndicator(
                             valueColor:
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
-                          const SizedBox(height: 16),
-                          const Text(
+                          SizedBox(height: 16),
+                          Text(
                             'Preparing upload...',
                             style: TextStyle(
                               color: Colors.white,
@@ -842,37 +895,55 @@ class AddQuestionScreen extends StatelessWidget {
       return 'Uploaded file';
     }
 
-    // If filename is a full path that includes assignment_files/
-    if (filename.contains('assignment_files/') ||
-        filename.contains('assignment_files%2F')) {
-      // Extract the last part after assignment_files/
-      final RegExp regex = RegExp(r'assignment_files(?:%2F|\/)([^?&]+)');
-      final match = regex.firstMatch(filename);
-      if (match != null && match.groupCount >= 1) {
-        final extractedName = match.group(1) ?? '';
-        if (extractedName.isNotEmpty) {
-          return Uri.decodeFull(extractedName);
+    try {
+      // Si el nombre de archivo es una ruta completa que incluye assignment_files/
+      if (filename.contains('assignment_files/') ||
+          filename.contains('assignment_files%2F')) {
+        // Extraer la última parte después de assignment_files/
+        final RegExp regex = RegExp(r'assignment_files(?:%2F|\/)([^?&]+)');
+        final match = regex.firstMatch(filename);
+        if (match != null && match.groupCount >= 1) {
+          final extractedName = match.group(1) ?? '';
+          if (extractedName.isNotEmpty) {
+            try {
+              return Uri.decodeFull(extractedName);
+            } catch (e) {
+              return extractedName;
+            }
+          }
+        }
+
+        // Intentar extraer el patrón de nombre de archivo con marca de tiempo
+        final RegExp timestampRegex = RegExp(r'\/(\d+_[^?]+)');
+        final timestampMatch = timestampRegex.firstMatch(filename);
+        if (timestampMatch != null && timestampMatch.groupCount >= 1) {
+          final extractedName = timestampMatch.group(1) ?? '';
+          if (extractedName.isNotEmpty) {
+            try {
+              return Uri.decodeFull(extractedName);
+            } catch (e) {
+              return extractedName;
+            }
+          }
         }
       }
 
-      // Try to extract timestamp filename pattern
-      final RegExp timestampRegex = RegExp(r'\/(\d+_[^?]+)');
-      final timestampMatch = timestampRegex.firstMatch(filename);
-      if (timestampMatch != null && timestampMatch.groupCount >= 1) {
-        final extractedName = timestampMatch.group(1) ?? '';
-        if (extractedName.isNotEmpty) {
-          return Uri.decodeFull(extractedName);
-        }
+      // Si llegamos aquí, simplemente usa el nombre de archivo tal como está, pero elimina cualquier parámetro de URL
+      if (filename.contains('?')) {
+        filename = filename.split('?').first;
       }
-    }
 
-    // If we get here, just use the filename as is, but remove any URL parameters
-    if (filename.contains('?')) {
-      filename = filename.split('?').first;
+      // Obtener solo el nombre de archivo de la ruta
+      try {
+        final name = path.basename(filename);
+        return name;
+      } catch (e) {
+        // En caso de error, simplemente devuelve la cadena original
+        return filename;
+      }
+    } catch (e) {
+      print('Error processing filename: $e');
+      return 'file';
     }
-
-    // Get just the file name from the path
-    final name = path.basename(Uri.decodeFull(filename));
-    return name;
   }
 }

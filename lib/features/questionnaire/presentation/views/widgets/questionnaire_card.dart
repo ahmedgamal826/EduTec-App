@@ -13,7 +13,7 @@ class QuestionnaireCard extends StatelessWidget {
   final void Function()? onLongPress;
 
   const QuestionnaireCard({
-    Key? key,
+    super.key,
     required this.index,
     required this.screenHeight,
     required this.screenWidth,
@@ -22,7 +22,7 @@ class QuestionnaireCard extends StatelessWidget {
     required this.questions,
     this.onTap,
     this.onLongPress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

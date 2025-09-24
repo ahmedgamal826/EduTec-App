@@ -72,8 +72,7 @@ import 'package:provider/provider.dart';
 class StudentHomeQuestionnairesView extends StatelessWidget {
   final String courseId;
 
-  const StudentHomeQuestionnairesView({Key? key, required this.courseId})
-      : super(key: key);
+  const StudentHomeQuestionnairesView({super.key, required this.courseId});
 
   @override
   Widget build(BuildContext context) {

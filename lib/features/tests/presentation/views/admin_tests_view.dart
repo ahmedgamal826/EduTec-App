@@ -12,10 +12,10 @@ class AdminTestsView extends StatelessWidget {
   final String courseId;
 
   const AdminTestsView({
-    Key? key,
+    super.key,
     this.initialTestsQuestions = const [],
     required this.courseId,
-  }) : super(key: key);
+  });
 
   void _showQuestionTypeDialog(BuildContext context, TestsViewModel viewModel) {
     showDialog(

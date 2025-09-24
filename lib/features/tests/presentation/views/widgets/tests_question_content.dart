@@ -7,7 +7,7 @@ import 'package:path/path.dart' as path;
 class TestsTestsQuestionContent extends StatelessWidget {
   final TestsQuestionModel? question;
 
-  const TestsTestsQuestionContent({Key? key, this.question}) : super(key: key);
+  const TestsTestsQuestionContent({super.key, this.question});
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,7 @@ class TestsTestsQuestionContent extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ] else if (question!.type == 'Upload File') ...[
             _buildFileDisplay(context),
           ],
@@ -189,7 +189,7 @@ class TestsTestsQuestionContent extends StatelessWidget {
                         size: 28,
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width - 100,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

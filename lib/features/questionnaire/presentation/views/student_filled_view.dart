@@ -7,8 +7,7 @@ import 'student_answers_view.dart';
 class StudentsFilledView extends StatelessWidget {
   final String courseId;
 
-  const StudentsFilledView({Key? key, required this.courseId})
-      : super(key: key);
+  const StudentsFilledView({super.key, required this.courseId});
 
   @override
   Widget build(BuildContext context) {

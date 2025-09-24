@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 class HomeTestsView extends StatelessWidget {
   final String courseId;
 
-  const HomeTestsView({Key? key, required this.courseId}) : super(key: key);
+  const HomeTestsView({super.key, required this.courseId});
 
   // Helper method to format time with AM/PM
   String _formatTimeWithAMPM(TimeOfDay timeOfDay) {
@@ -373,7 +373,7 @@ class HomeTestsView extends StatelessWidget {
             minute: int.parse(parts[1]),
           );
           startTimeController.text =
-              '${selectedStartTime!.hour.toString().padLeft(2, '0')}:${selectedStartTime!.minute.toString().padLeft(2, '0')}';
+              '${selectedStartTime.hour.toString().padLeft(2, '0')}:${selectedStartTime.minute.toString().padLeft(2, '0')}';
         }
       } catch (e) {
         print('Error parsing start time: ${test.startTime}, Error: $e');
@@ -390,7 +390,7 @@ class HomeTestsView extends StatelessWidget {
             minute: int.parse(parts[1]),
           );
           endTimeController.text =
-              '${selectedEndTime!.hour.toString().padLeft(2, '0')}:${selectedEndTime!.minute.toString().padLeft(2, '0')}';
+              '${selectedEndTime.hour.toString().padLeft(2, '0')}:${selectedEndTime.minute.toString().padLeft(2, '0')}';
         }
       } catch (e) {
         print('Error parsing end time: ${test.endTime}, Error: $e');
@@ -616,7 +616,7 @@ class HomeTestsView extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Cancel',
+              child: const Text('Cancel',
                   style: TextStyle(color: AppColors.primaryColor)),
             ),
             ElevatedButton(
@@ -790,7 +790,7 @@ class HomeTestsView extends StatelessWidget {
                                 final test = viewModel.assignments[index];
                                 return TestsListItemAdmin(
                                   test: test,
-                                  animation: AlwaysStoppedAnimation(1.0),
+                                  animation: const AlwaysStoppedAnimation(1.0),
                                   onDelete: () {
                                     viewModel.selectAssignment(index);
                                     _deleteTest(context, viewModel, index);

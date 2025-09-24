@@ -6,10 +6,10 @@ class LogoAnimation extends StatefulWidget {
   final double height;
 
   const LogoAnimation({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
-  }) : super(key: key);
+  });
 
   @override
   State<LogoAnimation> createState() => _LogoAnimationState();

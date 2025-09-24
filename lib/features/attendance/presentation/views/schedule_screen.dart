@@ -1845,6 +1845,7 @@
 //   }
 // }
 
+import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:attendance_app/features/attendance/cubits/cubit_admin/lecture_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -1855,10 +1856,10 @@ class ScheduleScreen extends StatefulWidget {
   final String courseId;
   final LectureCubit lectureCubit;
   const ScheduleScreen({
-    Key? key,
+    super.key,
     required this.courseId,
     required this.lectureCubit,
-  }) : super(key: key);
+  });
 
   @override
   _ScheduleScreenState createState() => _ScheduleScreenState();
@@ -1905,12 +1906,50 @@ class _ScheduleScreenState extends State<ScheduleScreen>
     );
   }
 
+  // void _pickDate() async {
+  //   DateTime? pickedDate = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(3000),
+
+  //     builder: (context, child) {
+  //       return Theme(
+  //         data: Theme.of(context).copyWith(
+  //           colorScheme: ColorScheme.light(
+  //             primary: Colors.blue.shade700,
+  //             onPrimary: Colors.white,
+  //             onSurface: Colors.black,
+  //           ),
+  //           textButtonTheme: TextButtonThemeData(
+  //             style: TextButton.styleFrom(
+  //               foregroundColor: Colors.blue.shade700,
+  //             ),
+  //           ),
+  //         ),
+  //         child: child!,
+  //       );
+  //     },
+  //   );
+
+  //   if (pickedDate != null) {
+  //     setState(() {
+  //       _dateController.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+  //     });
+  //   }
+  // }
+
   void _pickDate() async {
+    DateTime currentDate = DateTime.now();
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(3000),
+      selectableDayPredicate: (DateTime date) {
+        return date.isAfter(currentDate.subtract(const Duration(days: 1))) ||
+            date.isAtSameMomentAs(currentDate);
+      },
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -2188,384 +2227,399 @@ class _ScheduleScreenState extends State<ScheduleScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          color: Colors.blue.shade300,
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'Add Lecture',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+          ),
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Add Lecture',
-                        style: GoogleFonts.poppins(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(2, 2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close,
-                            color: Colors.white, size: 30),
-                        onPressed: () => Navigator.pop(context),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            right: 20,
+            left: 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     Text(
+                //       'Add Lecture',
+                //       style: GoogleFonts.poppins(
+                //         fontSize: 26,
+                //         fontWeight: FontWeight.bold,
+                //         color: AppColors.primaryColor,
+                //         shadows: [
+                //           Shadow(
+                //             color: Colors.black.withOpacity(0.1),
+                //             offset: const Offset(2, 2),
+                //             blurRadius: 4,
+                //           ),
+                //         ],
+                //       ),
+                //     ),
+                //     IconButton(
+                //       icon: const Icon(Icons.close,
+                //           color: AppColors.primaryColor, size: 30),
+                //       onPressed: () => Navigator.pop(context),
+                //     ),
+                //   ],
+                // ),
+                // const SizedBox(height: 20),
+                Text(
+                  'Lecture Name',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  // elevation: 3,
+                  // color: Colors.white,
+                  // shape: BorderRadius.circular(radius),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    //  borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Lecture Name',
+                  child: TextField(
+                    cursorColor: Colors.white,
+                    controller: _lectureNameController,
+                    decoration: InputDecoration(
+                      fillColor: AppColors.primaryColor,
+                      filled: true,
+                      hintText: 'Enter lecture name',
+                      hintStyle: GoogleFonts.poppins(
+                        color: Colors.white,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 15,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.book,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
                       color: Colors.white,
+                      fontSize: 16,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Container(
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Date',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    cursorColor: Colors.white,
+                    controller: _dateController,
+                    readOnly: true,
+                    onTap: _pickDate,
+                    decoration: InputDecoration(
+                      fillColor: AppColors.primaryColor,
+                      filled: true,
+                      hintText: 'Select date (DD/MM/YYYY)',
+                      hintStyle: GoogleFonts.poppins(
+                        color: Colors.white,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 15,
+                      ),
+                      suffixIcon: Icon(
+                        Icons.calendar_today,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withOpacity(0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: TextField(
-                      controller: _lectureNameController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter lecture name',
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.grey.shade600,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          cameraStatus == 'open'
+                              ? Icons.videocam
+                              : Icons.videocam_off,
+                          color: cameraStatus == 'open'
+                              ? Colors.green
+                              : Colors.red,
+                          size: 20,
                         ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 15,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.book,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        color: Colors.blue.shade900,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Date',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _dateController,
-                      readOnly: true,
-                      onTap: _pickDate,
-                      decoration: InputDecoration(
-                        hintText: 'Select date (DD/MM/YYYY)',
-                        hintStyle: GoogleFonts.poppins(
-                          color: Colors.grey.shade600,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 15,
-                        ),
-                        suffixIcon: Icon(
-                          Icons.calendar_today,
-                          color: Colors.blue.shade700,
-                        ),
-                      ),
-                      style: GoogleFonts.poppins(
-                        color: Colors.blue.shade900,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.95),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            cameraStatus == 'open'
-                                ? Icons.videocam
-                                : Icons.videocam_off,
+                        const SizedBox(width: 8),
+                        Text(
+                          cameraStatus == 'open'
+                              ? 'Camera Open'
+                              : 'Camera Closed',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
                             color: cameraStatus == 'open'
                                 ? Colors.green
                                 : Colors.red,
-                            size: 20,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            cameraStatus == 'open'
-                                ? 'Camera Open'
-                                : 'Camera Closed',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: cameraStatus == 'open'
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  Text(
-                    'Start Time',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'Start Time',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildDropdown(
-                        value: startHour,
-                        items: List.generate(12, (index) => index + 1),
-                        onChanged: (value) =>
-                            setState(() => startHour = value!),
-                        width: 80,
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildDropdown(
+                      value: startHour,
+                      items: List.generate(12, (index) => index + 1),
+                      onChanged: (value) => setState(() => startHour = value!),
+                      width: 80,
+                    ),
+                    Text(
+                      ':',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        color: Colors.white,
                       ),
-                      Text(
-                        ':',
+                    ),
+                    _buildDropdown(
+                      value: startMinute,
+                      items: List.generate(60, (index) => index),
+                      onChanged: (value) =>
+                          setState(() => startMinute = value!),
+                      width: 80,
+                      format: (value) => value.toString().padLeft(2, '0'),
+                    ),
+                    const SizedBox(width: 10),
+                    _buildDropdown(
+                      value: startPeriod,
+                      items: const ['AM', 'PM'],
+                      onChanged: (value) =>
+                          setState(() => startPeriod = value!),
+                      width: 80,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  'End Time',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildDropdown(
+                      value: endHour,
+                      items: List.generate(12, (index) => index + 1),
+                      onChanged: (value) => setState(() => endHour = value!),
+                      width: 80,
+                    ),
+                    Text(
+                      ':',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    _buildDropdown(
+                      value: endMinute,
+                      items: List.generate(60, (index) => index),
+                      onChanged: (value) => setState(() => endMinute = value!),
+                      width: 80,
+                      format: (value) => value.toString().padLeft(2, '0'),
+                    ),
+                    const SizedBox(width: 10),
+                    _buildDropdown(
+                      value: endPeriod,
+                      items: const ['AM', 'PM'],
+                      onChanged: (value) => setState(() => endPeriod = value!),
+                      width: 80,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                Center(
+                  child: ScaleTransition(
+                    scale: _buttonScaleAnimation,
+                    child: ElevatedButton.icon(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              _animationController.forward(from: 0);
+                              _saveSchedule();
+                            },
+                      icon: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.save, color: Colors.white),
+                      label: Text(
+                        isLoading ? 'Saving...' : 'Save Schedule',
                         style: GoogleFonts.poppins(
-                          fontSize: 20,
+                          fontSize: 16,
                           color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      _buildDropdown(
-                        value: startMinute,
-                        items: List.generate(60, (index) => index),
-                        onChanged: (value) =>
-                            setState(() => startMinute = value!),
-                        width: 80,
-                        format: (value) => value.toString().padLeft(2, '0'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 8,
+                        shadowColor: Colors.black.withOpacity(0.3),
                       ),
-                      const SizedBox(width: 10),
-                      _buildDropdown(
-                        value: startPeriod,
-                        items: const ['AM', 'PM'],
-                        onChanged: (value) =>
-                            setState(() => startPeriod = value!),
-                        width: 80,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  Text(
-                    'End Time',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildDropdown(
-                        value: endHour,
-                        items: List.generate(12, (index) => index + 1),
-                        onChanged: (value) => setState(() => endHour = value!),
-                        width: 80,
-                      ),
-                      Text(
-                        ':',
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: ScaleTransition(
+                    scale: _buttonScaleAnimation,
+                    child: ElevatedButton.icon(
+                      onPressed: (isLoading || cameraStatus != 'open')
+                          ? null
+                          : () {
+                              _animationController.forward(from: 0);
+                              _closeCamera();
+                            },
+                      icon: const Icon(Icons.videocam_off, color: Colors.white),
+                      label: Text(
+                        isLoading ? 'Closing...' : 'Close Camera',
                         style: GoogleFonts.poppins(
-                          fontSize: 20,
+                          fontSize: 16,
                           color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      _buildDropdown(
-                        value: endMinute,
-                        items: List.generate(60, (index) => index),
-                        onChanged: (value) =>
-                            setState(() => endMinute = value!),
-                        width: 80,
-                        format: (value) => value.toString().padLeft(2, '0'),
-                      ),
-                      const SizedBox(width: 10),
-                      _buildDropdown(
-                        value: endPeriod,
-                        items: const ['AM', 'PM'],
-                        onChanged: (value) =>
-                            setState(() => endPeriod = value!),
-                        width: 80,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  Center(
-                    child: ScaleTransition(
-                      scale: _buttonScaleAnimation,
-                      child: ElevatedButton.icon(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                _animationController.forward(from: 0);
-                                _saveSchedule();
-                              },
-                        icon: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
-                              )
-                            : const Icon(Icons.save, color: Colors.white),
-                        label: Text(
-                          isLoading ? 'Saving...' : 'Save Schedule',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 8,
-                          shadowColor: Colors.black.withOpacity(0.3),
-                        ),
+                        elevation: 8,
+                        shadowColor: Colors.black.withOpacity(0.3),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: ScaleTransition(
-                      scale: _buttonScaleAnimation,
-                      child: ElevatedButton.icon(
-                        onPressed: (isLoading || cameraStatus != 'open')
-                            ? null
-                            : () {
-                                _animationController.forward(from: 0);
-                                _closeCamera();
-                              },
-                        icon:
-                            const Icon(Icons.videocam_off, color: Colors.white),
-                        label: Text(
-                          isLoading ? 'Closing...' : 'Close Camera',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
+                ),
+                const SizedBox(height: 10),
+                Center(
+                  child: ScaleTransition(
+                    scale: _buttonScaleAnimation,
+                    child: ElevatedButton.icon(
+                      onPressed: (isLoading ||
+                              cameraStatus == 'open' ||
+                              _lectureNameController.text.isEmpty ||
+                              _dateController.text.isEmpty)
+                          ? null
+                          : () {
+                              _animationController.forward(from: 0);
+                              _openCamera();
+                            },
+                      icon: const Icon(Icons.videocam, color: Colors.white),
+                      label: Text(
+                        isLoading ? 'Opening...' : 'Open Camera',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.shade600,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 8,
-                          shadowColor: Colors.black.withOpacity(0.3),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        elevation: 8,
+                        shadowColor: Colors.black.withOpacity(0.3),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: ScaleTransition(
-                      scale: _buttonScaleAnimation,
-                      child: ElevatedButton.icon(
-                        onPressed: (isLoading ||
-                                cameraStatus == 'open' ||
-                                _lectureNameController.text.isEmpty ||
-                                _dateController.text.isEmpty)
-                            ? null
-                            : () {
-                                _animationController.forward(from: 0);
-                                _openCamera();
-                              },
-                        icon: const Icon(Icons.videocam, color: Colors.white),
-                        label: Text(
-                          isLoading ? 'Opening...' : 'Open Camera',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade600,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 8,
-                          shadowColor: Colors.black.withOpacity(0.3),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ),

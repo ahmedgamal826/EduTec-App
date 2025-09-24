@@ -201,7 +201,7 @@ class _UserProfileViewState extends State<UserProfileView> {
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('A chat is already exist')),
+          const SnackBar(content: Text('A chat is already exist')),
         );
       } finally {
         setState(() => _isLoading = false);

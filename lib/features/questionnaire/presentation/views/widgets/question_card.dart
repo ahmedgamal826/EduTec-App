@@ -9,7 +9,7 @@ class QuestionCard extends StatelessWidget {
   final VoidCallback onDelete;
   final String role;
 
-  const QuestionCard({
+  const QuestionCard({super.key, 
     required this.index,
     required this.isSelected,
     this.isAnswered = false,

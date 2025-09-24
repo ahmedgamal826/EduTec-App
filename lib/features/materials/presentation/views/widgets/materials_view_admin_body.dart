@@ -7,7 +7,7 @@ import '../../../cubits/cubit_admin/material_state1.dart';
 import '../widgets/material_item_admin.dart';
 
 class MaterialsAdminBodyView extends StatelessWidget {
-  const MaterialsAdminBodyView({Key? key}) : super(key: key);
+  const MaterialsAdminBodyView({super.key});
 
   // دالة للتحقق إذا كان الملف PDF
   bool _isPDF(String fileName) {

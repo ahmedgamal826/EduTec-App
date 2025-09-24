@@ -1,7 +1,8 @@
+import 'package:attendance_app/core/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextFiled extends StatefulWidget {
-  CustomTextFiled({
+  const CustomTextFiled({
     super.key,
     required this.controller,
     required this.hintText,
@@ -29,7 +30,7 @@ class _CustomTextFiledState extends State<CustomTextFiled> {
       child: Align(
         alignment: Alignment.center,
         child: TextFormField(
-          cursorColor: Colors.white,
+          cursorColor: AppColors.primaryColor,
           controller: widget.controller,
           validator: (value) {
             if (value!.isEmpty) {
@@ -40,14 +41,26 @@ class _CustomTextFiledState extends State<CustomTextFiled> {
           obscureText: isPasswordField ? obscureText : false,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: const TextStyle(color: Colors.white),
+            hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Colors.grey[100],
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none),
+                borderSide: BorderSide(color: Colors.grey[300]!, width: 1)),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+              borderRadius: BorderRadius.circular(10),
+            ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.white),
+              borderSide: BorderSide(color: AppColors.primaryColor, width: 1.5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red[400]!, width: 1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.red[400]!, width: 1.5),
               borderRadius: BorderRadius.circular(10),
             ),
             suffixIcon: isPasswordField
@@ -59,23 +72,23 @@ class _CustomTextFiledState extends State<CustomTextFiled> {
                     },
                     icon: Icon(
                       obscureText ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.white,
+                      color: AppColors.primaryColor,
                     ),
                   )
                 : null,
             prefixIcon: widget.hintText == 'Enter your Email'
-                ? const Icon(
+                ? Icon(
                     Icons.mail,
-                    color: Colors.white,
+                    color: AppColors.primaryColor,
                   )
                 : widget.hintText == 'Enter your Name'
-                    ? const Icon(
+                    ? Icon(
                         Icons.person,
-                        color: Colors.white,
+                        color: AppColors.primaryColor,
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.lock,
-                        color: Colors.white,
+                        color: AppColors.primaryColor,
                       ),
           ),
         ),
